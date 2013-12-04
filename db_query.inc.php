@@ -412,6 +412,17 @@ class db_core {
 		return $this->dbh->rollback();
 	}
 
+	public function last_info() {
+		// The last element of the info array
+		$arr  = $this->db_query_info;
+		$info = array_slice($arr,-1,1);
+
+		// Array_slice returns an array, and we only want one
+		$ret = $info[0];
+
+		return $ret;
+	}
+
 }
 
 // Extend the class by adding all the config options
