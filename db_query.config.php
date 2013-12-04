@@ -1,6 +1,16 @@
 <?PHP
 	class db_query extends db_core {
 
+		public function __construct($dsn = "", $user = "", $pass = "") {
+			if ($dsn) {
+				$ret = $this->db_connect($dsn,$user,$pass);
+
+				return $ret;
+			}
+
+			return true;
+		}
+
 		public function db_connect($name,$u = "",$p = "") {
 			$name = strtolower($name);
 
