@@ -49,6 +49,8 @@
 			// Build an array of the DB names to cache
 			if (!is_array($name)) { $name = array($name); }
 
+			$this->dbh = $dbh;
+
 			return array($dbh,$name);
 		}
 
