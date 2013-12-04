@@ -356,9 +356,16 @@ class db_core {
 		return $ret;
 	}
 
-	public function db($name,$u = "",$p = "") {
-		if (!$name) { return false; }
-		//if ($this->debug) { print "In DB()</br />\n"; }
+	public function db($name = "",$u = "",$p = "") {
+		// Get the name of the connected DB
+		if (!$name) { 
+			if (isset($this->{'dbh_cache'}->{$name})) {
+				$name = $this->{'dbh_cache'}->{$name};
+				return $name;
+			} else {
+				return false;
+			}
+		}
 
 		// If $name is already cached use that
 		if (isset($this->{'dbh_cache'}->{$name})) {
