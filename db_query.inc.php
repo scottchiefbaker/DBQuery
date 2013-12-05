@@ -51,8 +51,32 @@ class db_core {
 			// Prepare the command
 			$sth = $dbh->prepare($sql);
 			if (!$sth) { 
-				list(,,$text) = $dbh->errorInfo();
-				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $text)); 
+				list($sql_error_code,$driver_error_code,$err_text) = $dbh->errorInfo();
+
+				// We couldn't make a STH, probably bad SQL
+				if (!$this->show_errors) { 
+					$info = array(
+						'sql'              => $sql,
+						'error'            => $err_text,
+						'return_type'      => $return_type,
+						'db_name'          => $this->db_name,
+						'parameter_values' => $prepare_values
+					);
+
+					$i = debug_backtrace();
+
+					if (isset($i[1])) { $num = 1; } // Called from my external class
+					else { $num = 0; } // Called direct
+
+					$info['called_from_file'] = $i[$num]['file'];
+					$info['called_from_line'] = $i[$num]['line'];
+
+					$this->db_query_info[] = $info;
+
+					return false; 
+				}
+
+				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $err_text)); 
 			}
 
 			// Execute the command with the appropriate replacement variables (if any)
@@ -255,6 +279,9 @@ class db_core {
 	}
 
 	public function error_out($msg) {
+		// Don't print any errors if we're not showing errors
+		if (!$this->show_errors) { return false; }
+
 		if ($this->rats) { $this->rats->error_out($msg); }
 
 		if (!is_array($msg)) { $msg = array($msg); }
