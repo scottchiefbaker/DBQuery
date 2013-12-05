@@ -162,7 +162,13 @@ class db_core {
 				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql)); }
 			}
 
-			if (isset($this->sth) && !$ret) { $this->sql = $this->sth = $this->fetch_num = NULL; return array(); } 
+			// If we have a cache sth and nothing to return it means
+			// we hit the end of the record set so we need to zero
+			// out all the fetch related vars
+			if (isset($this->sth) && !$ret) { 
+				$this->sql = $this->sth = $this->fetch_num = NULL; 
+				return array(); 
+			} 
 
 			$return_type = 'info_hash';
 		} elseif ($return_type == 'insert_id' || preg_match("/^INSERT/i",$sql)) {
