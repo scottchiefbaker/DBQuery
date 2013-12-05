@@ -14,6 +14,7 @@ class db_core {
 	var $debug                   = 0;
 	var $show_errors             = 1;  // If this is set to zero be silent about all errors
 	var $external_error_function = ""; // Override the built in error function
+	var $db_name                 = ""; // Placeholder
 
 	public function init_db_core($db = "") {
 		if ($db) { $this->db($db); }
@@ -166,7 +167,7 @@ class db_core {
 			$ret = $sth->fetch(PDO::FETCH_ASSOC);
 			$return_type = 'one_row';
 			$return_recs = 1;
-		} elseif ($return_type == 'info_hash' && $key_field) {
+		} elseif ($return_type == 'info_hash' && isset($key_field)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) { 
 				$key = $data[$key_field];
 				$ret[$key] = $data; 
