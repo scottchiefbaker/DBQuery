@@ -11,7 +11,8 @@ if (!defined('DB_QUERY_LOG')) {
 
 // This is extended and called 'db_query' in the config class
 class db_core {
-	var $debug = 0;
+	var $debug       = 0;
+	var $show_errors = 1; // If this is set to zero be silent about all errors
 
 	public function db_core($db = "") {
 		if ($db) { $this->db($db); }
@@ -24,6 +25,11 @@ class db_core {
 		$start = microtime(1);
 		$sql   = trim($sql);
 
+		if ($return_type === "no_error") {
+			$this->show_errors = 0;
+		}
+
+		// If we're not connected to a DB connect to the default one
 		if (!$this->dbh) { $this->db('default'); } // Connect to the default DB
 		$dbh = $this->dbh;
 
@@ -68,7 +74,7 @@ class db_core {
 		$total = sprintf("%0.3f",microtime(1) - $start);
 
 		// Check for non "00000" error status
-		if ($return_type != 'no_error' && $has_error) {
+		if ($this->show_errors && $has_error) {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$err_text = $err[2];
 			$this->error_out(array("<span style=\"color: red; font-weight: bold;\">SQL Error</span>",$html_sql,"<b>Error message:</b> " . $err_text));
@@ -97,7 +103,7 @@ class db_core {
 		/////////////////////////////////////////////
 		// Be smart about what we're going to return
 		/////////////////////////////////////////////
-		if ($return_type == 'no_error' && $has_error) { // Has to be the first to test for error status
+		if (!$this->show_errors && $has_error) { // Has to be the first to test for error status
 			return false;
 		} elseif ($return_type == 'one_data') {
 			$ret = $sth->fetch(PDO::FETCH_NUM); // Get the first row
@@ -189,6 +195,9 @@ class db_core {
 			$return_type = 'create/drop';
 			$ret = 1;
 		} else {
+			// If we're not showing errors, just return false
+			if (!$this->show_errors) { return false; }
+
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$error    = "<div>Not sure about the return type for this SQL</div><br >\n<div>";
 			$error   .= "<b>SQL:</b> $html_sql</div>";
