@@ -11,14 +11,12 @@ if (!defined('DB_QUERY_LOG')) {
 
 // This is extended and called 'db_query' in the config class
 class db_core {
-	var $debug       = 0;
-	var $show_errors = 1; // If this is set to zero be silent about all errors
+	var $debug                   = 0;
+	var $show_errors             = 1;  // If this is set to zero be silent about all errors
+	var $external_error_function = ""; // Override the built in error function
 
 	public function init_db_core($db = "") {
 		if ($db) { $this->db($db); }
-
-		global $rats;
-		if ($rats) { $this->rats = &$rats; }
 	}
 
 	public function query($sql = "",$return_type = "",$third = '') {
@@ -266,14 +264,9 @@ class db_core {
 		
 			$sql = preg_replace("/\n|\r/","",$sql); // Make it all one line
 			$sql = preg_replace("/\s+/"," ",$sql); // Remove double spaces
-			if (is_object($this->rats)) {
-				$emp = $this->rats->emp->info['EmpUsername'];
-			} else {
-				$emp = "web_user";
-			}
 
 			$date = date("Y-m-d H:i:s");
-			$str = "\"$date\",\"$emp\",\"$sql\",\"$total\",\"$return_recs\"\n";
+			$str = "\"$date\",\"$sql\",\"$total\",\"$return_recs\"\n";
 
 			if ($fp) {
 				fwrite($fp,$str);
@@ -290,7 +283,9 @@ class db_core {
 		// Don't print any errors if we're not showing errors
 		if (!$this->show_errors) { return false; }
 
-		if ($this->rats) { $this->rats->error_out($msg); }
+		if (is_callable($this->external_error_function)) {
+			call_user_func($this->external_error_function,$msg);
+		}
 
 		if (!is_array($msg)) { $msg = array($msg); }
 		$cli = $this->is_cli();
