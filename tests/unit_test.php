@@ -15,10 +15,10 @@ $data = $dbq->query($sql);
 $last_info   = $dbq->last_info();
 $return_type = $last_info['return_type'];
 
-// Make sure the default return type is info_hash
-unit_test("SELECT: info_hash_default has correct return type", $return_type === 'info_hash');
-unit_test("SELECT: info_hash_default returns numeric array", is_numeric_array($data) === true);
-unit_test("SELECT: info_hash_default returns associate array as the first item",is_assoc($data[0]));
+// Make sure the default return type is InfoHash
+unit_test("SELECT: InfoHashDefault has correct return type", $return_type === 'info_hash');
+unit_test("SELECT: InfoHashDefault returns numeric array", is_numeric_array($data) === true);
+unit_test("SELECT: InfoHashDefault returns associate array as the first item",is_assoc($data[0]));
 
 $data = $dbq->query($sql,'info_hash');
 
@@ -27,11 +27,34 @@ $cols  = sizeof(array_keys($first));
 $rows  = sizeof($data);
 
 // Make sure we get back the correct number of rows
-unit_test("SELECT: info_hash correct rows", $rows === 8);
-unit_test("SELECT: info_hash correct cols", $cols === 6);
+unit_test("SELECT: InfoHash correct rows", $rows === 8);
+unit_test("SELECT: InfoHash correct cols", $cols === 6);
 // Make sure it's not an assoc array
-unit_test("SELECT: info_hash returns numeric array",is_numeric_array($data));
-unit_test("SELECT: info_hash returns associate array as the first item",is_assoc($data[0]));
+unit_test("SELECT: InfoHash returns numeric array",is_numeric_array($data));
+unit_test("SELECT: InfoHash returns associate array as the first item",is_assoc($data[0]));
+
+///////////////////////////////////////
+// Select - InfoHash with Key
+///////////////////////////////////////
+
+$sql = "SELECT * FROM Customer WHERE CustID > 3 LIMIT 5;";
+$data = $dbq->query($sql,'info_hash|CustID');
+
+$last_info   = $dbq->last_info();
+$return_type = $last_info['return_type'];
+
+$count = sizeof($data);
+$first = array_slice($data,0,1);
+list($fkey,$fval) = each($data);
+
+// Make sure we get back a numeric array
+unit_test("SELECT: InfoHashKey returns a numeric array",is_numeric_array($data));
+// The first item should not be an array by itself
+unit_test("SELECT: InfoHashKey first element is an array",is_array($first));
+// Make sure we get more than 5 items
+unit_test("SELECT: InfoHashKey returned valid data",$count > 4);
+unit_test("SELECT: InfoHashKey first element is correct",$fkey > 3);
+unit_test("SELECT: InfoHashKey has correct return type", $return_type === 'info_hash_with_key');
 
 ///////////////////////////////////////
 // Select - InfoList
@@ -46,11 +69,11 @@ $cols  = sizeof($first);
 $rows  = sizeof($data);
 
 // Make sure we get back the correct number of rows
-unit_test("SELECT: info_list correct rows",$rows == 4);
-unit_test("SELECT: info_list correct cols",$cols == 6);
+unit_test("SELECT: InfoList correct rows",$rows == 4);
+unit_test("SELECT: InfoList correct cols",$cols == 6);
 // Make sure it's not an assoc array
-unit_test("SELECT: info_list is numeric array",is_numeric_array($data) === true);
-unit_test("SELECT: info_list first element is a numeric array",is_numeric_array($first) === true);
+unit_test("SELECT: InfoList is numeric array",is_numeric_array($data) === true);
+unit_test("SELECT: InfoList first element is a numeric array",is_numeric_array($first) === true);
 
 ///////////////////////////////////////
 // Select - KeyValue
@@ -143,30 +166,6 @@ unit_test("SELECT: OneRowList first element is not an array",!is_array($data[0])
 unit_test("SELECT: OneRowList returned valid data",isset($data[0]));
 
 ///////////////////////////////////////
-// Select - InfoHash with Key
-///////////////////////////////////////
-print "\n";
-
-$sql = "SELECT * FROM Customer WHERE CustID > 3 LIMIT 5;";
-$data = $dbq->query($sql,'info_hash|CustID');
-
-$last_info   = $dbq->last_info();
-$return_type = $last_info['return_type'];
-
-$count = sizeof($data);
-$first = array_slice($data,0,1);
-list($fkey,$fval) = each($data);
-
-// Make sure we get back a numeric array
-unit_test("SELECT: InfoHashKey returns a numeric array",is_numeric_array($data));
-// The first item should not be an array by itself
-unit_test("SELECT: InfoHashKey first element is an array",is_array($first));
-// Make sure we get more than 5 items
-unit_test("SELECT: InfoHashKey returned valid data",$count > 4);
-unit_test("SELECT: InfoHashKey first element is correct",$fkey > 3);
-unit_test("SELECT: InfoHashKey has correct return type", $return_type === 'info_hash_with_key');
-
-///////////////////////////////////////
 // Select - Broken SQL
 ///////////////////////////////////////
 print "\n";
@@ -175,6 +174,61 @@ $sql  = "INVALID SQL;";
 $data = $dbq->query($sql);
 
 unit_test("SELECT: Invalid SQL returns false", $data === false);
+
+///////////////////////////////////////
+// INSERT
+///////////////////////////////////////
+print "\n";
+
+// Put in several orders
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (1,2,10);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (8,3,1);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (8,8,1);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (8,4,10);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (8,9,15);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (8,11,1000);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (10,12,5);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (10,11,500);");
+$id = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (10,7,5);");
+
+unit_test("INSERT: Returns valid InsertID", $id > 3);
+
+///////////////////////////////////////
+// UPDATE
+///////////////////////////////////////
+print "\n";
+
+$affected = $dbq->query("UPDATE orders SET ItemCount = ItemCount + 1 WHERE CustID = 10;");
+unit_test("UPDATE: Return correct number of affected rows", $affected > 2);
+
+$affected = $dbq->query("UPDATE orders SET ItemCount = ItemCount + 1 WHERE CustID = 1000;");
+unit_test("UPDATE: Return correct number of affected rows for missing CustID", $affected === 0);
+
+///////////////////////////////////////
+// DELETE:
+///////////////////////////////////////
+print "\n";
+
+// Put in several orders
+$affected = $dbq->query("DELETE FROM orders WHERE CustID = 99999");
+unit_test("DELETE: Removing a non-item returns 0", $affected === 0);
+
+$affected = $dbq->query("DELETE FROM orders WHERE CustID = 8");
+unit_test("DELETE: Removing known order returns the correct amount", $affected > 4);
+
+$affected = $dbq->query("DELETE FROM orders WHERE CustID = 8");
+unit_test("DELETE: Removing the same order returns 0", $affected === 0);
+
+$affected = $dbq->query("DELETE FROM orders");
+unit_test("DELETE: Removing everything returns more than 0", $affected > 0);
+
+///////////////////////////////////////
+// Raw PDO
+///////////////////////////////////////
+
+print "\n";
+$ok = $dbq->dbh->exec("VACUUM");
+unit_test("RAW PDO Command Ok $affected", $ok > 0);
 
 print "\n";
 unit_test(-1,-1);
