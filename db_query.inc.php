@@ -146,7 +146,8 @@ class db_core {
 			}
 
 			$return_type = 'info_hash_with_key';
-		} elseif (isset($this->sql) || $return_type == 'info_hash' || preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql)) {
+		// If it's an info_hash or nothing (auto detect) and it's known SQL run this
+		} elseif (($return_type == 'info_hash' || $return_type == "") && preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql)) {
 			if (isset($this->sth)) { 
 				$sth = $this->sth; 
 				$sql = $this->sql;
