@@ -2,6 +2,8 @@
 	class db_query extends db_core {
 
 		public function __construct($dsn = "", $user = "", $pass = "") {
+			$this->init_db_core();
+
 			if ($dsn) {
 				$ret = $this->db_connect($dsn,$user,$pass);
 

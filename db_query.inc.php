@@ -14,7 +14,7 @@ class db_core {
 	var $debug       = 0;
 	var $show_errors = 1; // If this is set to zero be silent about all errors
 
-	public function db_core($db = "") {
+	public function init_db_core($db = "") {
 		if ($db) { $this->db($db); }
 
 		global $rats;
