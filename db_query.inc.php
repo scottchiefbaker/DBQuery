@@ -184,9 +184,11 @@ class db_core {
 			$ret = 1;
 		} else {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
-			print "<div>Not sure about the return type for this SQL</div>\n<div><b>SQL:</b> $html_sql</div>";
-			$return_type = 'unknown';
-			$ret = $rs;
+			$error    = "<div>Not sure about the return type for this SQL</div><br >\n<div>";
+			$error   .= "<b>SQL:</b> $html_sql</div>";
+			$error   .= "<b>ReturnType:</b> $return_type</div>";
+
+			$this->error_out($error);
 		}
 
 		// Store some info about this query
