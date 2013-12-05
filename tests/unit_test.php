@@ -1,4 +1,6 @@
 <?PHP
+// Report all PHP errors
+error_reporting(E_ALL);
 
 $dbq = init_db();
 $dbq->show_errors = false;
