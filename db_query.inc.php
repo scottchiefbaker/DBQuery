@@ -74,7 +74,7 @@ class db_core {
 			$this->error_out(array("<span style=\"color: red; font-weight: bold;\">SQL Error</span>",$html_sql,"<b>Error message:</b> " . $err_text));
 		}
 
-		if (preg_match("/info_hash:(\w+)/",$return_type,$m)) {
+		if (preg_match("/info_hash[:|](\w+)/",$return_type,$m)) {
 			$key_field = $m[1];
 			$return_type = "info_hash";
 		}
