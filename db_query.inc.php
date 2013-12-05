@@ -102,7 +102,8 @@ class db_core {
 		if ($this->show_errors && $has_error) {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$err_text = $err[2];
-			$this->error_out(array("<span style=\"color: red; font-weight: bold;\">SQL Error</span>",$html_sql,"<b>Error message:</b> " . $err_text));
+
+			$this->error_out("<span>Syntax Error</span>\n" . $html_sql . "\n" . $err_text);
 		}
 
 		if (preg_match("/info_hash[:|](\w+)/",$return_type,$m)) {
