@@ -57,7 +57,8 @@ class db_core {
 				if (!$this->show_errors) { 
 					$info = array(
 						'sql'              => $sql,
-						'error'            => $err_text,
+						'error_text'       => $err_text,
+						'error_code'       => intval($driver_error_code),
 						'return_type'      => $return_type,
 						'db_name'          => $this->db_name,
 						'parameter_values' => $prepare_values
@@ -239,8 +240,14 @@ class db_core {
 		$err_text = "";
 		if (intval($err[0])) { $err_text = $err[2]; }
 		$info = array(
-			'sql'=>$sql,'exec_time'=>$total,'records_returned'=>$return_recs,'error'=>$err_text,
-			'return_type'=>$return_type,'db_name'=>$this->db_name,'parameter_values'=>$prepare_values
+			'sql'              => $sql,
+			'exec_time'        => $total,
+			'records_returned' => $return_recs,
+			'error_text'       => $err_text,
+			'error_code'       => intval($err[1]),
+			'return_type'      => $return_type,
+			'db_name'          => $this->db_name,
+			'parameter_values' => $prepare_values
 		);
 
 		$i = debug_backtrace();
@@ -364,9 +371,9 @@ class db_core {
 			}
 			$ret .= "\t</tr>\n";
 			
-			if ($item['error']) {
+			if ($item['error_code']) {
 				$ret .= "\t<tr>\n";
-				$ret .= "\t\t<td colspan=\"5\"><br /><span style=\"color: red; font-weight: bold;\">Error:</span> " . $item['error'] . "</td>\n";
+				$ret .= "\t\t<td colspan=\"5\"><br /><span style=\"color: red; font-weight: bold;\">Error:</span> " . $item['error_text'] . "</td>\n";
 				$ret .= "\t</tr>\n";
 			}
 
