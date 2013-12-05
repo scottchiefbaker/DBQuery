@@ -285,10 +285,19 @@ class db_core {
 		if ($this->rats) { $this->rats->error_out($msg); }
 
 		if (!is_array($msg)) { $msg = array($msg); }
+		$cli = $this->is_cli();
 
 		foreach ($msg as $m) {
-			if ($m) { print "<div><b>Error:</b> $m</div>"; }
+			if ($m) { 
+				$msg = "<div><b>Error:</b> $m</div>\n"; 
+
+				// If we're in CLI mode, strip out any HTML tags
+				if ($cli) { $msg = strip_tags($msg); }
+
+				print $msg;
+			}
 		}
+
 		exit;
 	}
 
@@ -466,6 +475,14 @@ class db_core {
 		$ret = $info[0];
 
 		return $ret;
+	}
+
+	public function is_cli() {
+		if (php_sapi_name() == 'cli') {
+			return true;
+		}
+
+		return false;
 	}
 
 }
