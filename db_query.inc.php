@@ -121,6 +121,11 @@ class db_core {
 			return true;
 		}
 
+		$is_fetch = 0;
+		if (!$sql && !$return_type && $this->sth) {
+			$is_fetch = 1;
+		}
+
 		$count = 0;
 		global $DB_QUERY_REC_LIMIT;
 		$rec_limit = $DB_QUERY_REC_LIMIT;
@@ -178,7 +183,7 @@ class db_core {
 
 			$return_type = 'info_hash_with_key';
 		// If it's an info_hash or nothing (auto detect) and it's known SQL run this
-		} elseif (($return_type == 'info_hash' || $return_type == "") && preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql)) {
+		} elseif ($is_fetch || (($return_type == 'info_hash' || $return_type == "") && preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql))) {
 			if (isset($this->sth)) { 
 				$sth = $this->sth; 
 				$sql = $this->sql;
