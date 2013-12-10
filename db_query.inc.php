@@ -496,7 +496,16 @@ class db_core {
 
 }
 
-// Extend the class by adding all the config options
-require('db_query.config.php');
+$dbq_config = 'db_query.config.php';
+if (is_readable($dbq_config)) {
+	// Extend the class by adding all the config options
+	require('db_query.config.php');
+} elseif (is_readable("db_query.config.php.sample")) {
+	$dbq = new db_core;
+	$dbq->error_out("Missing config. Please rename db_query.config.php.sample to db_query.config.php after you make appropriate changes");
+} else {
+	$dbq = new db_core;
+	$dbq->error_out("Missing config.");
+}
 
 ?>
