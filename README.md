@@ -39,6 +39,7 @@ Return Hints
 ------------ 
 
 **info_hash** return an array of associative arrays (Note: this is the default return type)
+
 ~~~
 $sql  = "SELECT First, Last, City FROM Customers;";
 $data = $dbq->query($sql,'info_hash');
@@ -49,6 +50,7 @@ foreach ($data as $i) {
 ~~~
 
 **info_list** return an array of numeric arrays
+
 ~~~
 $sql  = "SELECT First, Last, City FROM Customers;";
 $data = $dbq->query($sql,'info_list');
@@ -59,12 +61,14 @@ foreach ($data as $i) {
 ~~~
 
 **one_data** return a single scalar
+
 ~~~
 $sql = "SELECT CustID FROM Customers WHERE Last = 'Doolis'";
 $id  = $dbq->query($sql,'one_data');
 ~~~
 
 **key_value** return an associative array key/value pair
+
 ~~~
 $sql  = "SELECT ID, Last FROM Customers;";
 $data = $dbq->query($sql,'key_value');
@@ -74,6 +78,7 @@ print "Customer #21 = " . $data[21];
 ~~~
 
 **one_row** return a single associtive array
+
 ~~~
 $sql  = "SELECT First, Last FROM Customers WHERE City = 'Chicago';";
 $data = $dbq->query($sql,'one_row');
@@ -82,6 +87,7 @@ print "Customer: " . $data['First'] . " " . $data['Last'];
 ~~~
 
 **one_column** return a single numeric array
+
 ~~~
 $sql = "SELECT ID FROM Customers WHERE City = 'Chicago';";
 $ids = $dbq->query($sql,'one_column');
