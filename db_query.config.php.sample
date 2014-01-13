@@ -27,7 +27,7 @@
 				$dbh = $this->dbq_mysql_connect();
 				$name = array('mysql','default');
 			// SQLite
-			if ($name 'sqlite') {
+			} elseif ($name == 'sqlite') {
 				$dbh = $this->dbq_sqlite_connect();
 				$name = array('sqlite');
 			// Raw DSN
