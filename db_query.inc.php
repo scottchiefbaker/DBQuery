@@ -44,16 +44,16 @@ class db_core {
 		}
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
-		
+
 		// If there is a SQL command, run it
 		if ($sql) {
 			// Prepare the command
 			$sth = $dbh->prepare($sql);
-			if (!$sth) { 
+			if (!$sth) {
 				list($sql_error_code,$driver_error_code,$err_text) = $dbh->errorInfo();
 
 				// We couldn't make a STH, probably bad SQL
-				if (!$this->show_errors) { 
+				if (!$this->show_errors) {
 					$info = array(
 						'sql'              => $sql,
 						'error_text'       => $err_text,
@@ -73,10 +73,10 @@ class db_core {
 
 					$this->db_query_info[] = $info;
 
-					return false; 
+					return false;
 				}
 
-				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $err_text)); 
+				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $err_text));
 			}
 
 			// Execute the command with the appropriate replacement variables (if any)
@@ -105,16 +105,21 @@ class db_core {
 			$this->error_out("<span>Syntax Error</span>\n" . $html_sql . "\n" . $err_text);
 		}
 
-		if (preg_match("/info_hash[:|](\w+)/",$return_type,$m)) {
-			$key_field = $m[1];
+		if (preg_match("/info_hash[:|](\w+)(\[\])?/",$return_type,$m)) {
+			$key_field   = $m[1];
 			$return_type = "info_hash";
+
+			$wants_array = 0;
+			if ($m[2]) {
+				$wants_array = 1;
+			}
 		}
 
 		// If it's a looping fetch, just get the query started
 		if (preg_match("/fetch:?(.+)?/",$return_type,$m)) {
 			$this->fetch_num = intval($m[1]);
 			$this->fetch_num || $this->fetch_num = 500;
-			
+
 			$this->sth = $sth; // Cache the $sth
 			$this->sql = $sql;
 
@@ -122,7 +127,8 @@ class db_core {
 		}
 
 		$is_fetch = 0;
-		if (!$sql && !$return_type && $this->sth) {
+		if (!$sql && $this->sth) {
+			$sth = $this->sth;
 			$is_fetch = 1;
 		}
 
@@ -142,7 +148,7 @@ class db_core {
 			// If nothing is in the record set, return an empty string
 			if (!isset($ret)) { $ret = ''; }
 		} elseif ($return_type == 'info_list') {
-			while ($data = $sth->fetch(PDO::FETCH_NUM)) { 
+			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				$ret[] = $data;
 
 				$count++;
@@ -150,12 +156,12 @@ class db_core {
 			}
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
-			while ($data = $sth->fetch(PDO::FETCH_NUM)) { 
+			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				$ret[$data[0]] = $data[1];
 			}
 		// Key/Value where we get a specific key/value from a larger list
-		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) { 
-			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) { 
+		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) {
+			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				$key = $data[$m[1]];
 				$value = $data[$m[2]];
 
@@ -173,25 +179,31 @@ class db_core {
 			$return_type = 'one_row';
 			$return_recs = 1;
 		} elseif ($return_type == 'info_hash' && isset($key_field)) {
-			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) { 
+			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				$key = $data[$key_field];
-				$ret[$key] = $data; 
+
+				if ($wants_array) {
+					$ret[$key][] = $data;
+				} else {
+					$ret[$key] = $data;
+				}
 
 				$count++;
+				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
 				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql)); }
 			}
 
 			$return_type = 'info_hash_with_key';
 		// If it's an info_hash or nothing (auto detect) and it's known SQL run this
 		} elseif ($is_fetch || (($return_type == 'info_hash' || $return_type == "") && preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql))) {
-			if (isset($this->sth)) { 
-				$sth = $this->sth; 
+			if (isset($this->sth)) {
+				$sth = $this->sth;
 				$sql = $this->sql;
 			}
 
 			// Loop through the data and return an info hash
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
-				$ret[] = $data; 
+				$ret[] = $data;
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
@@ -201,10 +213,10 @@ class db_core {
 			// If we have a cache sth and nothing to return it means
 			// we hit the end of the record set so we need to zero
 			// out all the fetch related vars
-			if (isset($this->sth) && !$ret) { 
-				$this->sql = $this->sth = $this->fetch_num = NULL; 
-				return array(); 
-			} 
+			if (isset($this->sth) && !$ret) {
+				$this->sql = $this->sth = $this->fetch_num = NULL;
+				return array();
+			}
 
 			$return_type = 'info_hash';
 		} elseif ($return_type == 'insert_id' || preg_match("/^INSERT/i",$sql)) {
@@ -213,7 +225,7 @@ class db_core {
 			if (is_numeric($ret)) { $ret = intval($ret); }
 
 			if (!$ret) { $ret = true; }
-			
+
 			$return_type = 'insert_id';
 		} elseif ($return_type == 'affected_rows' || preg_match("/^(DELETE|UPDATE|REPLACE|TRUNCATE)/i",$sql)) {
 			$ret = $affected_rows;
@@ -237,7 +249,7 @@ class db_core {
 		}
 
 		// Store some info about this query
-		if (!isset($return_recs)) { 
+		if (!isset($return_recs)) {
 			$return_recs = sizeof($ret);
 			if (isset($insert_id)) { $return_recs .= " (#$insert_id)"; }
 		}
@@ -267,7 +279,7 @@ class db_core {
 		if (defined('DB_QUERY_LOG') && is_writable(DB_QUERY_LOG)) {
 			$sql_log = DB_QUERY_LOG;
 			$fp = @fopen($sql_log,"a");
-		
+
 			$sql = preg_replace("/\n|\r/","",$sql); // Make it all one line
 			$sql = preg_replace("/\s+/"," ",$sql); // Remove double spaces
 
@@ -297,8 +309,8 @@ class db_core {
 		$cli = $this->is_cli();
 
 		foreach ($msg as $m) {
-			if ($m) { 
-				$msg = "<div><b>Error:</b> $m</div>\n"; 
+			if ($m) {
+				$msg = "<div><b>Error:</b> $m</div>\n";
 
 				// If we're in CLI mode, strip out any HTML tags
 				if ($cli) { $msg = strip_tags($msg); }
@@ -345,7 +357,7 @@ class db_core {
 			$this_count = $func_call_count[$item['called_from_file'] . ":" . $item['called_from_line']];
 			if ($this_count > 1) { $my_count = " <span style=\"color: red; font-weight: bold;\">($this_count" . $this->number_ordinal($this_count) ." call)</span>"; }
 			else { $my_count = ''; }
-		
+
 			$ret .= "<table style=\"width: 100%; border-collapse: collapse; border: 1px solid; margin-bottom: 1em;\">\n";
 			$ret .= "\t<tr style=\"background-color: #E7FFEB; color: black; text-align: center; font-size: 0.8em;\">\n";
 			$ret .= "\t\t<td style=\"width: 8%; border: 1px solid;\"><b>#$count</b>$dbn</td>\n";
@@ -372,7 +384,7 @@ class db_core {
 				$ret .= "\t\t<tr><td colspan=\"5\" style=\"font-size: 0.8em;\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
 			}
 			$ret .= "\t</tr>\n";
-			
+
 			if ($item['error_code']) {
 				$ret .= "\t<tr>\n";
 				$ret .= "\t\t<td colspan=\"5\"><br /><span style=\"color: red; font-weight: bold;\">Error:</span> " . $item['error_text'] . "</td>\n";
@@ -395,9 +407,9 @@ class db_core {
 	public function sql_clean($sql,$htmlize = 1) {
 		$ret = preg_replace("/\n|\r/"," ",$sql); // Make it all one line
 		$ret = preg_replace("/\s+/"," ",$ret); // Remove double spaces
-	
+
 		$words = array("FROM","WHERE","INNER JOIN","LEFT JOIN","GROUP BY","LIMIT","VALUES","SET","ORDER BY","OFFSET");
-	
+
 		foreach ($words as $word) {
 			$ret = preg_replace("/\b$word\b/i","\n$word",$ret); // Add a \n before each of the "words"
 		}
@@ -415,13 +427,13 @@ class db_core {
 
 		# htmlize = 2 includes the <pre> tags. If you do 1 you just get the HTML
 		if ($htmlize == 2) { $ret = "<pre>$ret</pre>"; }
-	
+
 		return $ret;
 	}
 
 	public function db($name = "",$u = "",$p = "") {
 		// Get the name of the connected DB
-		if (!$name) { 
+		if (!$name) {
 			if (isset($this->{'dbh_cache'}->{$name})) {
 				$name = $this->{'dbh_cache'}->{$name};
 				return $name;
@@ -440,7 +452,7 @@ class db_core {
 
 			// If the DBH isn't already cache add it to the cache
 			foreach ($names as $name) {
-				if (!isset($this->{'dbh_cache'}->{$name})) { $this->{'dbh_cache'}->{$name} = &$dbh; } 
+				if (!isset($this->{'dbh_cache'}->{$name})) { $this->{'dbh_cache'}->{$name} = &$dbh; }
 			}
 		}
 
