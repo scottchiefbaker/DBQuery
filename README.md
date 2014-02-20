@@ -16,8 +16,15 @@ Example Usage
 -------------
 
 ~~~
+// SQLite
 $dsn = "sqlite://path/to/dir/database.sqlite";
 $dbq = new db_query($dsn);
+
+// MySQL
+$dsn  = 'mysql:host=server.domain.com;dbname=my_database';
+$user = 'john_smith';
+$pass = 'sekrit';
+$dbq   = new db_query($dsn,$username,$password);
 
 $sql  = "SELECT First, Last, City, State, Zipcode FROM Customers;";
 $data = $dbq->query($sql);
