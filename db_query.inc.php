@@ -423,7 +423,9 @@ class db_core {
 		}
 
 		$word = "NULL";
-		$ret = preg_replace("/\b$word\b/i","<span style=\"font-weight: bold; color: #007804;\"><b>$word</b></span>",$ret); // Add a \n before each of the "words"
+		if ($htmlize) {
+			$ret = preg_replace("/\b$word\b/i","<span style=\"font-weight: bold; color: #007804;\"><b>$word</b></span>",$ret); // Add a \n before each of the "words"
+		}
 
 		# htmlize = 2 includes the <pre> tags. If you do 1 you just get the HTML
 		if ($htmlize == 2) { $ret = "<pre>$ret</pre>"; }
