@@ -123,12 +123,32 @@ class db_core {
 			$this->sth = $sth; // Cache the $sth
 			$this->sql = $sql;
 
+			$info = array(
+				'sql'              => $sql,
+				'exec_time'        => $total,
+				'records_returned' => 0,
+				'error_text'       => $err_text,
+				'error_code'       => intval($err[1]),
+				'return_type'      => $return_type,
+				'db_name'          => $this->db_name,
+				'parameter_values' => $prepare_values
+			);
+
+			$i = debug_backtrace();
+			if (isset($i[1])) { $num = 1; } // Called from my external class
+			else { $num = 0; } // Called direct
+
+			$info['called_from_file'] = $i[$num]['file'];
+			$info['called_from_line'] = $i[$num]['line'];
+			$this->db_query_info[] = $info;
+
 			return true;
 		}
 
 		$is_fetch = 0;
 		if (!$sql && $this->sth) {
 			$sth = $this->sth;
+			$sql = $this->sql;
 			$is_fetch = 1;
 		}
 
