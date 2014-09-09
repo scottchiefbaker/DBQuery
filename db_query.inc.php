@@ -110,15 +110,18 @@ class db_core {
 			$return_type = "info_hash";
 
 			$wants_array = 0;
-			if ($m[2]) {
+			if (isset($m[2])) {
 				$wants_array = 1;
 			}
 		}
 
 		// If it's a looping fetch, just get the query started
 		if (preg_match("/fetch:?(.+)?/",$return_type,$m)) {
-			$this->fetch_num = intval($m[1]);
-			$this->fetch_num || $this->fetch_num = 500;
+			if (isset($m[1])) {
+				$this->fetch_num = intval($m[1]);
+			} else {
+				$this->fetch_num = 500;
+			}
 
 			$this->sth = $sth; // Cache the $sth
 			$this->sql = $sql;
@@ -233,7 +236,7 @@ class db_core {
 			// If we have a cache sth and nothing to return it means
 			// we hit the end of the record set so we need to zero
 			// out all the fetch related vars
-			if (isset($this->sth) && !$ret) {
+			if (isset($this->sth) && !isset($ret)) {
 				$this->sql = $this->sth = $this->fetch_num = NULL;
 				return array();
 			}
@@ -270,18 +273,25 @@ class db_core {
 
 		// Store some info about this query
 		if (!isset($return_recs)) {
-			$return_recs = sizeof($ret);
+			if (!isset($ret)) {
+				$return_recs = 0;
+			} else {
+				$return_recs = sizeof($ret);
+			}
 			if (isset($insert_id)) { $return_recs .= " (#$insert_id)"; }
 		}
 
-		$err_text = "";
-		if (intval($err[0])) { $err_text = $err[2]; }
+		if (isset($err[0]) && intval($err[0])) {
+			$err_code = intval($err[1]);
+			$err_text = $err[2];
+		}
+
 		$info = array(
 			'sql'              => $sql,
 			'exec_time'        => $total,
 			'records_returned' => $return_recs,
 			'error_text'       => $err_text,
-			'error_code'       => intval($err[1]),
+			'error_code'       => $err_code,
 			'return_type'      => $return_type,
 			'db_name'          => $this->db_name,
 			'parameter_values' => $prepare_values
