@@ -45,6 +45,10 @@ class db_core {
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
 
+		$has_error = false;
+		$err_text  = '';
+		$err_code  = 0;
+
 		// If there is a SQL command, run it
 		if ($sql) {
 			// Prepare the command
@@ -84,7 +88,6 @@ class db_core {
 			$affected_rows = $sth->rowCount();
 			$err = $sth->errorInfo();
 
-			$has_error = false;
 			if ($err[0] !== "00000") {
 				$has_error = true;
 			}
@@ -131,7 +134,7 @@ class db_core {
 				'exec_time'        => $total,
 				'records_returned' => 0,
 				'error_text'       => $err_text,
-				'error_code'       => intval($err[1]),
+				'error_code'       => intval($err_code),
 				'return_type'      => $return_type,
 				'db_name'          => $this->db_name,
 				'parameter_values' => $prepare_values
@@ -375,7 +378,11 @@ class db_core {
 		$func_call_count = array();
 		foreach ($this->db_query_info as $item) {
 			$count++;
-			if ($item['db_name']) { $dbn = " (" . $item['db_name'] . ")"; }
+
+			$dbn = '';
+			if ($item['db_name']) {
+				$dbn = " (" . $item['db_name'] . ")";
+			}
 
 			$call_location = $item['called_from_file'] . ":" . $item['called_from_line'];
 			if (isset($func_call_count[$call_location])) {
@@ -402,6 +409,7 @@ class db_core {
 				$colors = array('#DCDCDC','#F6F6F6');
 
 				// Massage the values before we output them
+				$value_count = 0;
 				foreach ($item['parameter_values'] as &$item2) {
 					if ($item2 === NULL) { $item2 = "<b style=\"color: #811D0D;\">NULL</b>"; }
 					elseif ($item2 === "") { $item2 = "<b style=\"color: #811D0D;\">NULL_STRING</b>"; }
