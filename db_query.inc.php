@@ -202,6 +202,13 @@ class db_core {
 			$return_recs = 1;
 		} elseif (($return_type == 'one_row' || preg_match("/^SELECT.*LIMIT 1;?$/si",$sql)) && $return_type != 'info_hash') {
 			$ret = $sth->fetch(PDO::FETCH_ASSOC);
+
+			// For some reason if you do a query with 'one_row' that returns no matches
+			// you get false from PDO::FETCH_ASSOC. This works around what may be a PDO bug
+			if ($ret === false) {
+				$ret = array();
+			}
+
 			$return_type = 'one_row';
 			$return_recs = 1;
 		} elseif ($return_type == 'info_hash' && isset($key_field)) {

@@ -132,6 +132,11 @@ unit_test(is_assoc($data) === true, "SELECT: OneRow returns an associative array
 unit_test(!is_array($fkey), "SELECT: OneRow first key is not an array");
 unit_test(!is_array($fval), "SELECT: OneRow first value is not an array");
 
+$sql = "SELECT * FROM Customer WHERE CustID = 9802413;";
+$data = $dbq->query($sql,'one_row');
+
+unit_test(is_array($data) && empty($data), "SELECT: OneRow with WHERE clause with no matches returns an empty array");
+
 ///////////////////////////////////////
 // Select - OneColumn
 ///////////////////////////////////////
