@@ -245,21 +245,27 @@ unit_test(-1,-1);
 
 function init_db() {
 	$dir = dirname(__FILE__);
+	$str = file_get_contents("$dir/db/test.sql");
 
-	$file = "$dir/db/test.sqlite";
-
-	if (!is_readable($file)) {
-		print "DB is not readable: '$file'\n";
-		exit;
-	}
+	// Break up the SQL statements in to an array
+	$sql = explode(";",$str);
+	$sql = array_map('trim',$sql);
+	$sql = array_filter($sql);
 
 	require("$dir/../db_query.inc.php");
-	$dsn = "sqlite:$file";
+
+	// Build an in-memory database
+	$dsn = "sqlite::memory:";
 	$dbq = new db_query($dsn);
 
 	if (!$dbq) {
 		print "Couldn't connect to the DB";
 		exit;
+	}
+
+	// Execute each SQL query
+	foreach ($sql as $i) {
+		$dbq->query($i);
 	}
 
 	return $dbq;
