@@ -101,3 +101,13 @@ $ids = $dbq->query($sql,'one_column');
 
 print "Found IDs: " . join(", ", $ids);
 ~~~
+
+Parameter Binding
+-----------------
+
+~~~
+$sql    = "INSERT INTO Names (First, Last, Age) VALUES (?,?,?);";
+$params = array("Jason","Doolis",14);
+
+$id     = $dbq->query($sql,$params);
+~~~
