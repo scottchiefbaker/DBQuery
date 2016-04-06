@@ -8,7 +8,7 @@ on MySQL and SQLite.
 Installation
 ------------
 
-```
+```PHP
 require("db_query.inc.php");
 ```
 
