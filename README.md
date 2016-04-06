@@ -37,7 +37,7 @@ foreach ($data as $rec) {
 DBQuery simplifies the act of sending queries and iterating over the results.
 The core of DBQuery is in the `query()` function, which handles sending
 queries and building an iterable recordset. DBQuery does its best job to
-give you the datatype you want, but you can provide it hints to guide it.
+give you the datatype you want, but you can provide hints to guide it.
 
 If you call `query($sql,$return_hint)` with a second argument DBQuery will
 format the return data appropriately.
