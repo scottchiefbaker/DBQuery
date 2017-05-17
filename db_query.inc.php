@@ -99,8 +99,6 @@ class db_core {
 			// Do nothing we already have the statement handle
 		}
 
-		$total = microtime(1) - $start;
-
 		// Check for non "00000" error status
 		if ($this->show_errors && $has_error) {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
@@ -281,6 +279,8 @@ class db_core {
 
 			$this->error_out($error);
 		}
+
+		$total = microtime(1) - $start;
 
 		// Store some info about this query
 		if (!isset($return_recs)) {
