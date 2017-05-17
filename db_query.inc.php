@@ -378,7 +378,9 @@ class db_core {
 	}
 
 	public function query_summary() {
-		if (!$this->db_query_info) { return ""; }
+		if (empty($this->db_query_info)) {
+			return "";
+		}
 
 		$count      = 0;
 		$total_time = 0;
