@@ -16,6 +16,7 @@ class db_core {
 	var $slow_query_time         = 0.1; // Highlight queries that takes longer than this
 	var $external_error_function = "";  // Override the built in error function
 	var $db_name                 = "";  // Placeholder
+	var $dbh_cache               = [];
 
 	public function init_db_core($db = "") {
 		if ($db) { $this->db($db); }
@@ -491,28 +492,45 @@ class db_core {
 		return $ret;
 	}
 
-	public function db($name = "",$u = "",$p = "") {
-		// Get the name of the connected DB
+	public function db($name = "",$u = "",$p = "",$cache_only = false) {
+		// With no params we just return the currently connected DB
 		if (!$name) {
-			if (isset($this->{'dbh_cache'}->{$name})) {
-				$name = $this->{'dbh_cache'}->{$name};
-				return $name;
+			if (isset($this->db_name)) {
+				return $this->db_name;
 			} else {
 				return false;
 			}
 		}
 
+		// We just check the FIRST name
+		if (is_array($name)) {
+			$name = array_shift($name);
+		}
+
+		$this->debug_log("DB lookup for '$name'");
+
 		// If $name is already cached use that
-		if (isset($this->{'dbh_cache'}->{$name})) {
-			$dbh = $this->{'dbh_cache'}->{$name};
+		if (isset($this->dbh_cache[$name])) {
+			$dbh = $this->dbh_cache[$name];
+
 			$this->debug_log("Cache hit on '$name'");
 		} else {
-			list($dbh,$names) = $this->db_connect($name,$u,$p);
 			$this->debug_log("Cache miss on '$name'");
+
+			if (!$cache_only) {
+				list($dbh,$names) = $this->db_connect($name,$u,$p);
+			} else {
+				$names = [$name];
+				$dbh   = $cache_only;
+			}
 
 			// If the DBH isn't already cache add it to the cache
 			foreach ($names as $name) {
-				if (!isset($this->{'dbh_cache'}->{$name})) { $this->{'dbh_cache'}->{$name} = &$dbh; }
+				if (!isset($this->dbh_cache[$name])) {
+					$this->dbh_cache[$name] = $dbh;
+					$this->debug_log("Storing DB cache for '$name'");
+				}
+
 			}
 		}
 
