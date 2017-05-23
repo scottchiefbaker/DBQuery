@@ -1,78 +1,94 @@
 <?PHP
-	class db_query extends db_core {
 
-		// Pass the name of the DB you want to connect to
-		public function db_connect($name,$u = "",$p = "") {
-			$name = strtolower($name);
+class db_query extends db_core {
 
-			$this->debug_log("db_connect() on '$name'");
+	public function __construct($dsn = "",$user = "",$pass = "",$opts = array()) {
+		$this->init_db_core();
 
-			/////////////////////////////////////////////////////////
-			// If all you connect to is a single DB then just
-			// use 'default' as your connect name and return 
-			// an array of the DSN object and the name of the DB
-			//
-			// return array(new PDO('sqlite:/path/mydb.sqlite'),array('default'));
-			//
-			// If you use multiple DBs then break each connect
-			// apart in to different functions and connect with a different
-			// name.
-			//
-			// db_query will cache the DB connections and switch between
-			// them appropriately when requested
-			/////////////////////////////////////////////////////////
+		if ($dsn) {
+			$ret = $this->db_connect($dsn,$user,$pass);
 
-			// MySQL
-			if ($name == 'default' || $name == 'mysql') {
-				$dbh = $this->dbq_mysql_connect();
-				$name = array('mysql','default');
-			// SQLite
-			} elseif ($name == 'sqlite') {
-				$dbh = $this->dbq_sqlite_connect();
-				$name = array('sqlite');
-			// Raw DSN
-			} elseif (preg_match("/\w+:/",$name)) {
-				$dbh = new PDO($name,$u,$p);
-				$name = array("raw_dsn");
-			} else {
-				$this->error_out("Unknown database $name");
-			}
-			
-			// Build an array of the DB names to cache
-			if (!is_array($name)) { $name = array($name); }
-
-			$this->dbh = $dbh;
-
-			return array($dbh,$name);
+			return $ret;
 		}
 
-		private function dbq_mysql_connect() {
-			$host = "127.0.0.1";
-			$db   = "my_db";
-			$user = "my_user";
-			$pass = "sekrit_password";
-
-			$dbh  = new PDO("mysql:host=$host;dbname=$db", $user, $pass, array(PDO::ATTR_PERSISTENT => true));
-
-			return $dbh;
-		}
-
-		private function dbq_sqlite_connect($file) {
-			$dbh = new PDO("sqlite:$file");
-
-			return $dbh;
-		}
-
-		public function __construct($dsn = "", $user = "", $pass = "") {
-			$this->init_db_core();
-
-			if ($dsn) {
-				$ret = $this->db_connect($dsn,$user,$pass);
-
-				return $ret;
-			}
-
-			return true;
-		}
+		return true;
 	}
-?>
+
+	// Pass the name of the DB you want to connect to
+	public function db_connect($name,$u = "",$p = "",$opts) {
+		$name = strtolower($name);
+
+		$this->debug_log("db_connect() on '$name'");
+
+		/////////////////////////////////////////////////////////
+		// If all you connect to is a single DB then just
+		// use 'default' as your connect name and return
+		// an array of the DSN object and the name of the DB
+		//
+		// return array(new PDO('sqlite:/path/mydb.sqlite'),array('default'));
+		//
+		// If you use multiple DBs then break each connect
+		// apart in to different functions and connect with a different
+		// name.
+		//
+		// db_query will cache the DB connections and switch between
+		// them appropriately when requested
+		/////////////////////////////////////////////////////////
+
+		// MySQL
+		if ($name == 'default' || $name == 'mysql') {
+			$dbh = $this->dbq_mysql_connect();
+			$name = array('mysql','default');
+		// SQLite
+		} elseif ($name == 'sqlite') {
+			$dbh = $this->dbq_sqlite_connect();
+			$name = array('sqlite');
+		// Raw DSN
+		} elseif (preg_match("/\w+:/",$name)) {
+			try {
+				$dbh = new PDO($name,$u,$p);
+			} catch (Exception $e) {
+				$msg  = "<p>Unable to connect to database server DSN: \"$name\"</p>";
+				$msg .= "<p><b>Error Message:</b> " . $e->getMessage() . "</p>";
+				$msg .= "<p><b>Error Code:</b> " . $e->getCode() . "</p>";
+
+				$this->error_out($msg);
+				$dbh = null;
+			}
+
+			if (!empty($opts['name'])) {
+				$name = $opts['name'];
+			} else {
+				$name = "raw_dsn";
+			}
+		} else {
+			$this->error_out("Unknown database $name");
+		}
+
+		// Build an array of the DB names to cache
+		if (!is_array($name)) { $name = array($name); }
+
+		$this->dbh = $dbh;
+
+		return array($dbh,$name);
+	}
+
+	private function dbq_mysql_connect() {
+		$host = "127.0.0.1";
+		$db   = "my_db";
+		$user = "my_user";
+		$pass = "sekrit_password";
+
+		$dbh  = new PDO("mysql:host=$host;dbname=$db", $user, $pass, array(PDO::ATTR_PERSISTENT => true));
+
+		return $dbh;
+	}
+
+	private function dbq_sqlite_connect($file) {
+		$dbh = new PDO("sqlite:$file");
+
+		return $dbh;
+	}
+}
+
+// vim: filetype=php
