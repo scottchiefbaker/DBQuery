@@ -444,7 +444,7 @@ class db_core {
 					$color = $colors[$value_count % sizeof($colors)];
 					$item2 = "<span style=\"background-color: $color\">$item2</span>";
 				}
-				$ret .= "\t\t<tr><td colspan=\"5\" style=\"font-size: 0.8em;\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
+				$ret .= "\t\t<tr  style=\"border-top: 1px solid #bbb; background-color: $sql_bg;\"><td colspan=\"5\" style=\"font-size: 0.8em;\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
 			}
 			$ret .= "\t</tr>\n";
 
