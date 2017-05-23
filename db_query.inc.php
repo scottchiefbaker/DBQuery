@@ -129,6 +129,8 @@ class db_core {
 			$this->sth = $sth; // Cache the $sth
 			$this->sql = $sql;
 
+			$total = microtime(1) - $start;
+
 			$info = array(
 				'sql'              => $sql,
 				'exec_time'        => $total,
