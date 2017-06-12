@@ -15,7 +15,7 @@ class db_query extends db_core {
 	}
 
 	// Pass the name of the DB you want to connect to
-	public function db_connect($name,$u = "",$p = "",$opts) {
+	public function db_connect($name,$u = "",$p = "",$opts = array()) {
 		$name = strtolower($name);
 
 		$this->debug_log("db_connect() on '$name'");
