@@ -16,6 +16,7 @@ class db_core {
 	var $slow_query_time         = 0.1; // Highlight queries that takes longer than this
 	var $external_error_function = "";  // Override the built in error function
 	var $db_name                 = "";  // Placeholder
+	var $dbh_cache               = [];
 
 	public function init_db_core($db = "") {
 		if ($db) { $this->db($db); }
@@ -99,8 +100,6 @@ class db_core {
 			// Do nothing we already have the statement handle
 		}
 
-		$total = microtime(1) - $start;
-
 		// Check for non "00000" error status
 		if ($this->show_errors && $has_error) {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
@@ -129,6 +128,8 @@ class db_core {
 
 			$this->sth = $sth; // Cache the $sth
 			$this->sql = $sql;
+
+			$total = microtime(1) - $start;
 
 			$info = array(
 				'sql'              => $sql,
@@ -282,6 +283,8 @@ class db_core {
 			$this->error_out($error);
 		}
 
+		$total = microtime(1) - $start;
+
 		// Store some info about this query
 		if (!isset($return_recs)) {
 			if (!isset($ret)) {
@@ -377,7 +380,9 @@ class db_core {
 	}
 
 	public function query_summary() {
-		if (!$this->db_query_info) { return ""; }
+		if (empty($this->db_query_info)) {
+			return "";
+		}
 
 		$count      = 0;
 		$total_time = 0;
@@ -439,7 +444,7 @@ class db_core {
 					$color = $colors[$value_count % sizeof($colors)];
 					$item2 = "<span style=\"background-color: $color\">$item2</span>";
 				}
-				$ret .= "\t\t<tr><td colspan=\"5\" style=\"font-size: 0.8em;\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
+				$ret .= "\t\t<tr  style=\"border-top: 1px solid #bbb; background-color: $sql_bg;\"><td colspan=\"5\" style=\"font-size: 0.8em;\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
 			}
 			$ret .= "\t</tr>\n";
 
@@ -491,28 +496,45 @@ class db_core {
 		return $ret;
 	}
 
-	public function db($name = "",$u = "",$p = "") {
-		// Get the name of the connected DB
+	public function db($name = "",$u = "",$p = "",$cache_only = false) {
+		// With no params we just return the currently connected DB
 		if (!$name) {
-			if (isset($this->{'dbh_cache'}->{$name})) {
-				$name = $this->{'dbh_cache'}->{$name};
-				return $name;
+			if (isset($this->db_name)) {
+				return $this->db_name;
 			} else {
 				return false;
 			}
 		}
 
+		// We just check the FIRST name
+		if (is_array($name)) {
+			$name = array_shift($name);
+		}
+
+		$this->debug_log("DB lookup for '$name'");
+
 		// If $name is already cached use that
-		if (isset($this->{'dbh_cache'}->{$name})) {
-			$dbh = $this->{'dbh_cache'}->{$name};
+		if (isset($this->dbh_cache[$name])) {
+			$dbh = $this->dbh_cache[$name];
+
 			$this->debug_log("Cache hit on '$name'");
 		} else {
-			list($dbh,$names) = $this->db_connect($name,$u,$p);
 			$this->debug_log("Cache miss on '$name'");
+
+			if (!$cache_only) {
+				list($dbh,$names) = $this->db_connect($name,$u,$p);
+			} else {
+				$names = [$name];
+				$dbh   = $cache_only;
+			}
 
 			// If the DBH isn't already cache add it to the cache
 			foreach ($names as $name) {
-				if (!isset($this->{'dbh_cache'}->{$name})) { $this->{'dbh_cache'}->{$name} = &$dbh; }
+				if (!isset($this->dbh_cache[$name])) {
+					$this->dbh_cache[$name] = $dbh;
+					$this->debug_log("Storing DB cache for '$name'");
+				}
+
 			}
 		}
 
