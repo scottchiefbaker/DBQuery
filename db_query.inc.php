@@ -41,8 +41,10 @@ class db_core {
 			$return_type    = $third;
 		}
 
-		if ($return_type === "no_error") {
-			$this->show_errors = 0;
+		if ($return_type === "no_error" || !$this->show_errors) {
+			$show_errors = 0;
+		} else {
+			$show_errors = 1;
 		}
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
@@ -59,7 +61,7 @@ class db_core {
 				list($sql_error_code,$driver_error_code,$err_text) = $dbh->errorInfo();
 
 				// We couldn't make a STH, probably bad SQL
-				if (!$this->show_errors) {
+				if (!$show_errors) {
 					$info = array(
 						'sql'              => $sql,
 						'error_text'       => $err_text,
@@ -101,7 +103,7 @@ class db_core {
 		}
 
 		// Check for non "00000" error status
-		if ($this->show_errors && $has_error) {
+		if ($show_errors && $has_error) {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$err_text = $err[2];
 
@@ -167,7 +169,7 @@ class db_core {
 		/////////////////////////////////////////////
 		// Be smart about what we're going to return
 		/////////////////////////////////////////////
-		if (!$this->show_errors && $has_error) { // Has to be the first to test for error status
+		if (!$show_errors && $has_error) { // Has to be the first to test for error status
 			return false;
 		} elseif ($return_type == 'one_data') {
 			$ret = $sth->fetch(PDO::FETCH_NUM); // Get the first row
@@ -273,7 +275,7 @@ class db_core {
 			$ret = 1;
 		} else {
 			// If we're not showing errors, just return false
-			if (!$this->show_errors) { return false; }
+			if (!$show_errors) { return false; }
 
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$error    = "<div>Not sure about the return type for this SQL</div><br >\n<div>";
