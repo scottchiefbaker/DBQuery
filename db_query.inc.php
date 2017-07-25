@@ -26,10 +26,6 @@ class db_core {
 		$start = microtime(1);
 		$sql   = trim($sql);
 
-		if ($return_type === "no_error") {
-			$this->show_errors = 0;
-		}
-
 		// If we're not connected to a DB connect to the default one
 		if (!$this->dbh) { $this->db('default'); } // Connect to the default DB
 		$dbh = $this->dbh;
@@ -42,7 +38,11 @@ class db_core {
 		$prepare_values = array();
 		if (is_array($return_type)) {
 			$prepare_values = $return_type;
-			$return_type = $third;
+			$return_type    = $third;
+		}
+
+		if ($return_type === "no_error") {
+			$this->show_errors = 0;
 		}
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
