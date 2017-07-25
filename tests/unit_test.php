@@ -183,6 +183,21 @@ $data = $dbq->query($sql);
 unit_test($data === false, "SELECT: Invalid SQL returns false");
 
 ///////////////////////////////////////
+// No error testing
+///////////////////////////////////////
+
+print "\n";
+
+$affected = $dbq->query("INSERT INTO 'items' VALUES(?,?,?);",[null,'Twinkies',3.75],"no_error");
+unit_test(is_numeric($affected) && $affected > 10, "NOERROR: Returns valid data");
+
+$affected = $dbq->query("INSERT INTO 'items' VALUES(1,'Duplicate ID',2.76);","no_error");
+unit_test($affected === false, "NOERROR: Second param returns false");
+
+$affected = $dbq->query("INSERT INTO 'items' VALUES(?,?,?);",[1,'Duplicate ID',3.75],"no_error");
+unit_test($affected === false, "NOERROR: Third param returns false");
+
+///////////////////////////////////////
 // INSERT
 ///////////////////////////////////////
 print "\n";
@@ -235,7 +250,7 @@ unit_test($affected > 0, "DELETE: Removing everything returns more than 0");
 
 print "\n";
 $ok = $dbq->dbh->exec("VACUUM");
-unit_test($ok > 0, "RAW PDO Command Ok $affected");
+unit_test($ok > 0, "RAW PDO Command Ok '$ok'");
 
 print "\n";
 unit_test(-1,-1);
