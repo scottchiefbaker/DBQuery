@@ -177,6 +177,7 @@ class db_core {
 
 			// If nothing is in the record set, return an empty string
 			if (!isset($ret)) { $ret = ''; }
+			$return_recs = 1;
 		} elseif ($return_type == 'info_list') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				$ret[] = $data;
@@ -264,6 +265,7 @@ class db_core {
 			if (!$ret) { $ret = true; }
 
 			$return_type = 'insert_id';
+			$return_recs = 1;
 		} elseif ($return_type == 'affected_rows' || preg_match("/^(DELETE|UPDATE|REPLACE|TRUNCATE)/i",$sql)) {
 			$ret = $affected_rows;
 			$return_type = 'affected_rows';
