@@ -47,7 +47,8 @@ $return_type = $last_info['return_type'];
 
 $count = sizeof($data);
 $first = array_slice($data,0,1);
-list($fkey,$fval) = each($data);
+$fkey  = key($data);
+$fval  = $data[$fkey];
 
 // Make sure we get back a numeric array
 unit_test(is_numeric_array($data), "SELECT: InfoHashKey returns a numeric array");
@@ -90,7 +91,8 @@ $last  = array_slice($data,4,1);
 $rows  = sizeof($data);
 $cols  = sizeof(array_values($first));
 
-list($key,$value) = each($first);
+$key   = key($first);
+$value = $first[$key];
 
 // Make sure we get right number of items back
 unit_test($rows === 5, "SELECT: KeyValue correct rows");
@@ -110,7 +112,11 @@ print "\n";
 $sql = "SELECT First FROM Customer WHERE Last = 'Doolis' ORDER BY CustID;";
 $data = $dbq->query($sql,'one_data');
 
-$count = sizeof($data);
+if (is_array($data)) {
+	$count = sizeof($data);
+} else {
+	$count = 1;
+}
 
 // Make sure we only get ONE piece of scalar data back
 unit_test($data === 'Jason', "SELECT: OneData correct return value");
@@ -124,8 +130,8 @@ print "\n";
 
 $sql = "SELECT * FROM Customer;";
 $data = $dbq->query($sql,'one_row');
-
-list($fkey,$fval) = each($data);
+$fkey = key($data);
+$fval = $data[$fkey];
 
 // Make sure we get back an assoc array that's one dimensional
 unit_test(is_assoc($data) === true, "SELECT: OneRow returns an associative array");
