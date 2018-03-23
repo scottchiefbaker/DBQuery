@@ -1,4 +1,4 @@
-<?PHP
+<?php
 // Report all PHP errors
 error_reporting(E_ALL);
 
@@ -256,7 +256,7 @@ unit_test($affected > 0, "DELETE: Removing everything returns more than 0");
 
 print "\n";
 $ok = $dbq->dbh->exec("VACUUM");
-unit_test($ok > 0, "RAW PDO Command Ok '$ok'");
+unit_test($ok > 0, "RAW PDO Command OK '$ok'");
 
 print "\n";
 unit_test(-1,-1);
@@ -273,11 +273,11 @@ function init_db() {
 	$sql = array_map('trim',$sql);
 	$sql = array_filter($sql);
 
-	require("$dir/../db_query.inc.php");
+	require("$dir/../db_query.class.php");
 
 	// Build an in-memory database
 	$dsn = "sqlite::memory:";
-	$dbq = new db_query($dsn);
+	$dbq = new DBQuery($dsn);
 
 	if (!$dbq) {
 		print "Couldn't connect to the DB";
@@ -338,5 +338,3 @@ function unit_test($code,$name = "") {
 
 	return $ok;
 }
-
-?>

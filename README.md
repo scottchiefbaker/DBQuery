@@ -9,7 +9,7 @@ Installation
 ------------
 
 ```PHP
-require("db_query.inc.php");
+require("include/db_query.class.php");
 ```
 
 Example Usage
@@ -18,7 +18,7 @@ Example Usage
 ```PHP
 // SQLite
 $dsn = "sqlite://path/to/dir/database.sqlite";
-$dbq = new db_query($dsn);
+$dbq = new DBQuery($dsn);
 
 // MySQL
 $dsn  = 'mysql:host=server.domain.com;dbname=my_database';
