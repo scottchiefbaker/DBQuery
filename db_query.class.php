@@ -14,15 +14,42 @@ class DBQuery {
 	var $dbh                     = null;
 	var $query_log               = "";
 
-	public function __construct($dsn,$user = "",$pass = "") {
+	private $dsn           = "";
+	private $user          = "";
+	private $pass          = "";
+	private $delay_connect = false;
+
+	public function __construct($dsn,$user = "",$pass = "",$opts = []) {
+		// Delay connection until the first query
+		$delay_connect = $opts['delay_connect'] ?? false;
+
+		$this->dsn           = $dsn;
+		$this->user          = $user;
+		$this->pass          = $pass;
+		$this->delay_connect = $delay_connect;
+
+		// If we're not delaying connect right now
+		if (!$delay_connect) {
+			$this->connect_db($dsn,$user,$pass);
+		}
+	}
+
+	public function connect_db($dsn,$user = "",$pass = "") {
 		$ret = new PDO($dsn,$user,$pass);
 
 		if ($ret) {
 			$this->dbh = $ret;
 		}
+
+		return $ret;
 	}
 
 	public function query($sql = "",$return_type = "",$third = '') {
+		// If we're delaying and we don't already have a DB handle
+		if ($this->delay_connect && !$this->dbh) {
+			$ok = $this->connect_db($this->dsn, $this->user, $this->pass);
+		}
+
 		$start = microtime(1);
 		$sql   = trim($sql);
 
