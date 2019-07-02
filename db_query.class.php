@@ -458,7 +458,7 @@ class DBQuery {
 			$query_time = sprintf("%0.3f",$item['exec_time']);
 
 			$ret .= "<table title=\"$query_title\" style=\"width: 100%; border-collapse: collapse; border: 1px solid; margin-bottom: 1em;\">\n";
-			$ret .= "\t<tr style=\"background-color: $row_color; color: black; text-align: center; font-size: 0.8em;\">\n";
+			$ret .= "\t<tr style=\"background-color: $row_color; color: black; text-align: center;\">\n";
 			$ret .= "\t\t<td style=\"width: 8%; border: 1px solid;\"><b>#$count</b>$dbn</td>\n";
 			$ret .= "\t\t<td style=\"width: 15%; border: 1px solid;\">Time: <b>$query_time seconds</b></td>\n";
 			$ret .= "\t\t<td style=\"width: 37%; border: 1px solid;\"><b>{$item['called_from_file']}</b> line <b>#{$item['called_from_line']}</b>$my_count</td>\n";
@@ -466,7 +466,7 @@ class DBQuery {
 			$ret .= "\t\t<td style=\"width: 20%; border: 1px solid;\">Returned: <b>{$item['records_returned']}</b></td>\n";
 			$ret .= "\t</tr>\n";
 			$ret .= "\t<tr>\n";
-			$ret .= "\t\t<td colspan=\"5\"><div style=\"font-family: monospace; background-color: $sql_bg; color: black; font-size: 1.2em; padding: .2em;\">" . nl2br($this->sql_clean($item['sql'])) . "</div></td>\n";
+			$ret .= "\t\t<td colspan=\"5\"><div style=\"font-family: monospace; background-color: $sql_bg; color: black; padding: 5px;\">" . nl2br($this->sql_clean($item['sql'])) . "</div></td>\n";
 			if ($item['parameter_values']) {
 				$colors = array('#DCDCDC','#F6F6F6');
 
@@ -481,7 +481,7 @@ class DBQuery {
 					$color = $colors[$value_count % sizeof($colors)];
 					$item2 = "<span style=\"background-color: $color\">$item2</span>";
 				}
-				$ret .= "\t\t<tr  style=\"border-top: 1px solid #bbb; background-color: $sql_bg;\"><td colspan=\"5\" style=\"font-size: 0.8em;\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
+				$ret .= "\t\t<tr  style=\"border-top: 1px solid #bbb; background-color: $sql_bg;\"><td colspan=\"5\" style=\"padding: 5px\"><div class=\"wide\"><b>Values</b>: " . join(" ", $item['parameter_values']) . "</div></td></tr>\n";
 			}
 			$ret .= "\t</tr>\n";
 
