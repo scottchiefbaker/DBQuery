@@ -24,7 +24,7 @@ $dbq = new DBQuery($dsn);
 $dsn  = 'mysql:host=server.domain.com;dbname=my_database';
 $user = 'john_smith';
 $pass = 'sekrit';
-$dbq   = new db_query($dsn,$username,$password);
+$dbq   = new db_query($dsn, $username, $password);
 
 $sql  = "SELECT First, Last, City, State, Zipcode FROM Customers;";
 $data = $dbq->query($sql);
@@ -40,8 +40,8 @@ queries and building an iterable recordset.
 
 ```PHP
 $result = $dbq->query($sql);
-$result = $dbq->query($sql,$return_hint);
-$result = $dbq->query($sql,$param_array,$return_hint);
+$result = $dbq->query($sql, $return_hint);
+$result = $dbq->query($sql, $param_array, $return_hint);
 ```
 
 DBQuery does its best job to give you the datatype you want, but you can provide
@@ -54,7 +54,7 @@ Return Hints
 
 ```PHP
 $sql  = "SELECT First, Last, City FROM Customers;";
-$data = $dbq->query($sql,'info_hash');
+$data = $dbq->query($sql, 'info_hash');
 
 foreach ($data as $i) {
 	print "Cust: " . $i['First'] . " " . $i['Last'];
@@ -65,7 +65,7 @@ foreach ($data as $i) {
 
 ```PHP
 $sql  = "SELECT First, Last, City FROM Customers;";
-$data = $dbq->query($sql,'info_list');
+$data = $dbq->query($sql, 'info_list');
 
 foreach ($data as $i) {
 	print "Cust: " . $i[0] . " " . $i[1];
@@ -76,14 +76,14 @@ foreach ($data as $i) {
 
 ```PHP
 $sql = "SELECT CustID FROM Customers WHERE Last = 'Doolis'";
-$id  = $dbq->query($sql,'one_data');
+$id  = $dbq->query($sql, 'one_data');
 ```
 
 **key_value** return an associative array key/value pair
 
 ```PHP
 $sql  = "SELECT ID, Last FROM Customers;";
-$data = $dbq->query($sql,'key_value');
+$data = $dbq->query($sql, 'key_value');
 
 print "Customer #17 = " . $data[17];
 print "Customer #21 = " . $data[21];
@@ -93,7 +93,7 @@ print "Customer #21 = " . $data[21];
 
 ```PHP
 $sql  = "SELECT First, Last FROM Customers WHERE City = 'Chicago';";
-$data = $dbq->query($sql,'one_row');
+$data = $dbq->query($sql, 'one_row');
 
 print "Customer: " . $data['First'] . " " . $data['Last'];
 ```
@@ -102,7 +102,7 @@ print "Customer: " . $data['First'] . " " . $data['Last'];
 
 ```PHP
 $sql = "SELECT ID FROM Customers WHERE City = 'Chicago';";
-$ids = $dbq->query($sql,'one_column');
+$ids = $dbq->query($sql, 'one_column');
 
 print "Found IDs: " . join(", ", $ids);
 ```
@@ -111,8 +111,8 @@ Parameter Binding
 -----------------
 
 ```PHP
-$sql    = "INSERT INTO Names (First, Last, Age) VALUES (?,?,?);";
-$params = array("Jason","Doolis",14);
+$sql    = "INSERT INTO Names (First, Last, Age) VALUES (?, ?, ?);";
+$params = array("Jason", "Doolis", 14);
 
 $id     = $dbq->query($sql,$params);
 ```
