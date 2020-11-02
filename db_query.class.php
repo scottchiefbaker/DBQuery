@@ -13,6 +13,7 @@ class DBQuery {
 	var $dbh_cache               = [];
 	var $dbh                     = null;
 	var $query_log               = "";
+	var $record_limit            = 10000; // Don't return more than X records to prevent memory exhaustion
 
 	private $dsn           = "";
 	private $user          = "";
@@ -188,9 +189,7 @@ class DBQuery {
 		}
 
 		$count = 0;
-		global $DB_QUERY_REC_LIMIT;
-		$rec_limit = $DB_QUERY_REC_LIMIT;
-		$rec_limit || $rec_limit = 4000;
+		$rec_limit = $this->record_limit;
 		/////////////////////////////////////////////
 		// Be smart about what we're going to return
 		/////////////////////////////////////////////
