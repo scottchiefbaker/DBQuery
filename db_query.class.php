@@ -188,11 +188,13 @@ class DBQuery {
 			$is_fetch = 1;
 		}
 
+		$rec_limit         = $this->record_limit;
+		$max_allowed_error = "Query exceeded max allowed records: $rec_limit";
+
+		///////////////////////////////////////////////
+		// Be smart about what we're going to return //
+		///////////////////////////////////////////////
 		$count = 0;
-		$rec_limit = $this->record_limit;
-		/////////////////////////////////////////////
-		// Be smart about what we're going to return
-		/////////////////////////////////////////////
 		if (!$show_errors && $has_error) { // Has to be the first to test for error status
 			return false;
 		} elseif ($return_type == 'one_data') {
@@ -207,7 +209,7 @@ class DBQuery {
 				$ret[] = $data;
 
 				$count++;
-				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql), 38103); }
+				if ($count > $rec_limit) { $this->error_out(array($max_allowed_error, $sql), 38103); }
 			}
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
@@ -252,7 +254,7 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql), 13039); }
+				if ($count > $rec_limit) { $this->error_out(array($max_allowed_error, $sql), 13039); }
 			}
 
 			$return_type = 'info_hash_with_key';
@@ -269,7 +271,7 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql), 12940); }
+				if ($count > $rec_limit) { $this->error_out(array($max_allowed_error, $sql), 12940); }
 			}
 
 			// If we have a cache sth and nothing to return it means
