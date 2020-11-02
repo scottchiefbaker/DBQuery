@@ -507,7 +507,7 @@ class DBQuery {
 		$ret = preg_replace("/\n|\r/"," ",$sql); // Make it all one line
 		$ret = preg_replace("/\s+/"," ",$ret); // Remove double spaces
 
-		$words = array("FROM","WHERE","INNER JOIN","LEFT JOIN","GROUP BY","LIMIT","VALUES","SET","ORDER BY","OFFSET");
+		$words = array("FROM","WHERE","INNER JOIN","LEFT JOIN","GROUP BY","LIMIT","VALUES","SET","ORDER BY","OFFSET","LEFT OUTER JOIN");
 
 		foreach ($words as $word) {
 			$ret = preg_replace("/\b$word\b/i","\n$word",$ret); // Add a \n before each of the "words"
