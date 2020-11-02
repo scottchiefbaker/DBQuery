@@ -195,9 +195,11 @@ class DBQuery {
 		// Be smart about what we're going to return //
 		///////////////////////////////////////////////
 		$count = 0;
-		if (!$show_errors && $has_error) { // Has to be the first to test for error status
+
+		// If we're not showing errors we silenty return false
+		if (!$show_errors && $has_error) {
 			return false;
-		} elseif ($return_type == 'one_data') {
+		} elseif ($return_type === 'one_data' || $return_type === "one") {
 			$ret = $sth->fetch(PDO::FETCH_NUM); // Get the first row
 			$ret = $ret[0]; // Get the first column of the first row
 
@@ -219,17 +221,21 @@ class DBQuery {
 		// Key/Value where we get a specific key/value from a larger list
 		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
-				$key = $data[$m[1]];
+				$key   = $data[$m[1]];
 				$value = $data[$m[2]];
 
-				if ($key) { $ret[$key] = $value; }
+				if ($key) {
+					$ret[$key] = $value;
+				}
 			}
 
 			$return_type = 'key_pair';
 		} elseif ($return_type == 'one_column') {
-			while ($data = $sth->fetch(PDO::FETCH_NUM)) { $ret[] = $data[0]; }
+			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
+				$ret[] = $data[0];
+			}
 		} elseif ($return_type == 'one_row_list') {
-			$ret = $sth->fetch(PDO::FETCH_NUM);
+			$ret         = $sth->fetch(PDO::FETCH_NUM);
 			$return_recs = 1;
 		} elseif (($return_type == 'one_row' || preg_match("/^SELECT.*LIMIT 1;?$/si",$sql)) && $return_type != 'info_hash') {
 			$ret = $sth->fetch(PDO::FETCH_ASSOC);
@@ -242,6 +248,7 @@ class DBQuery {
 
 			$return_type = 'one_row';
 			$return_recs = 1;
+		// Info hash with a key field. Example: 'info_hash:CustID'
 		} elseif ($return_type == 'info_hash' && isset($key_field)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				$key = $data[$key_field];
@@ -283,6 +290,7 @@ class DBQuery {
 			}
 
 			$return_type = 'info_hash';
+		// It's an INSERT so we try and return the record id
 		} elseif ($return_type == 'insert_id' || preg_match("/^INSERT/i",$sql)) {
 			// Get the ID from the inserted record, and convert it to an integer
 			$insert_id = $ret = $dbh->lastInsertId();
@@ -292,6 +300,7 @@ class DBQuery {
 
 			$return_type = 'insert_id';
 			$return_recs = 1;
+		// Delete/Update returns the number of rows affected
 		} elseif ($return_type == 'affected_rows' || preg_match("/^(DELETE|UPDATE|REPLACE|TRUNCATE)/i",$sql)) {
 			$ret         = $affected_rows;
 			$return_type = 'affected_rows';
