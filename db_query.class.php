@@ -58,7 +58,7 @@ class DBQuery {
 
 		// Test if the DB connection is there
 		if (!$dbh) {
-			$this->error_out('DBH connection not present (Error: #1559)');
+			$this->error_out('DBH connection not present', 15990);
 		}
 
 		$prepare_values = array();
@@ -110,7 +110,7 @@ class DBQuery {
 					return false;
 				}
 
-				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $err_text));
+				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $err_text), 34102);
 			}
 
 			// Execute the command with the appropriate replacement variables (if any)
@@ -133,7 +133,7 @@ class DBQuery {
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$err_text = $err[2];
 
-			$this->error_out("<span>Syntax Error</span>\n" . $html_sql . "\n" . $err_text);
+			$this->error_out("<span>Syntax Error</span>\n" . $html_sql . "\n" . $err_text, 34913);
 		}
 
 		if (preg_match("/info_hash[:|](\w+)(\[\])?/",$return_type,$m)) {
@@ -207,7 +207,7 @@ class DBQuery {
 				$ret[] = $data;
 
 				$count++;
-				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql)); }
+				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql), 38103); }
 			}
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
@@ -252,7 +252,7 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql)); }
+				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql), 13039); }
 			}
 
 			$return_type = 'info_hash_with_key';
@@ -269,7 +269,7 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql)); }
+				if ($count > $rec_limit) { $this->error_out(array("Too many records returned (> $rec_limit)",$sql), 12940); }
 			}
 
 			// If we have a cache sth and nothing to return it means
@@ -311,7 +311,7 @@ class DBQuery {
 			$error   .= "<b>SQL:</b> $html_sql</div>";
 			$error   .= "<b>ReturnType:</b> $return_type</div>";
 
-			$this->error_out($error);
+			$this->error_out($error, 13843);
 		}
 
 		$total = microtime(1) - $start;
@@ -377,16 +377,25 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function error_out($msg) {
+	public function error_out($msg, $num = null) {
 		// Don't print any errors if we're not showing errors
 		if (!$this->show_errors) { return false; }
 
-		if (is_callable($this->external_error_function)) {
-			call_user_func($this->external_error_function,$msg);
+		// If we don't get an error number use a "default" value
+		if (is_null($num)) {
+			$num = 89317;
 		}
 
-		if (!is_array($msg)) { $msg = array($msg); }
+		if (is_callable($this->external_error_function)) {
+			call_user_func($this->external_error_function,$msg, $num);
+		}
+
+		if (!is_array($msg)) {
+			$msg = array($msg);
+		}
+
 		$cli = $this->is_cli();
+		print "<h2>Error #$num</h3>";
 
 		foreach ($msg as $m) {
 			if ($m) {
