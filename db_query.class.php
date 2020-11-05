@@ -130,10 +130,15 @@ class DBQuery {
 
 		// Check for non "00000" error status
 		if ($show_errors && $has_error) {
-			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
-			$err_text = $err[2];
+			$html_sql    = "<pre>" . $this->sql_clean($sql) . "</pre>";
+			$html_params = join(", ", $prepare_values);
+			$err_text    = $err[2];
 
-			$this->error_out("<span>Syntax Error</span>\n" . $html_sql . "\n" . $err_text, 34913);
+			if (empty($prepare_values)) {
+				$this->error_out("<span>Syntax Error</span>\n$html_sql\n$err_text", 34913);
+			} else {
+				$this->error_out("<span>SQL Syntax Error</span>\n$html_sql\n<div>Params: $html_params</div>\n<br />\n$err_text", 34913);
+			}
 		}
 
 		if (preg_match("/info_hash[:|](\w+)(\[\])?/",$return_type,$m)) {
