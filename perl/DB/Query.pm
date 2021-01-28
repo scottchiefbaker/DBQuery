@@ -91,6 +91,8 @@ sub query {
 		if ($@) {
 			die($self->color('orange') . "Error on prepare: " . color('reset') . "$@\n");
 		}
+
+		$rows = $sth->rows;
 	} else {
 		$rows = $dbh->do($sql);
 	}
