@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use DBI;
 
-use constant DB_QUERY_VERSION => '1.0.1';
+use constant DB_QUERY_VERSION => '1.0.2';
 
 ##############################################################################
 # Example usage:
@@ -29,16 +29,16 @@ sub new {
 
 	my $dbh = DBI->connect($dsn, $user, $pass, $opts);
 
-    my $self = {
-        dsn   => $dsn,
+	my $self = {
+		dsn   => $dsn,
 		user  => $user,
 		dbh   => $dbh,
 		debug => 0,
-    };
+	};
 
 	my $ret = bless($self, $class);
 
-    return $ret;
+	return $ret;
 }
 
 sub query {
@@ -110,7 +110,7 @@ sub query {
 	} elsif ($type eq 'one_row') {
 		$ret = $sth->fetchrow_hashref();
 	} elsif ($type eq 'info_list') {
-		while(my @data = $sth->fetchrow_array()) {
+		while (my @data = $sth->fetchrow_array()) {
 			push(@$ret,\@data);
 		}
 	} elsif ($type eq 'info_hash') {
