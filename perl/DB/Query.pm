@@ -43,9 +43,7 @@ sub new {
 
 sub query {
 	my ($self,$one,$two,$three) = @_;
-
-	my $sql  = $self->trim($one);
-	my $type = "";
+	my $sql = $self->trim($one);
 
 	# If the second element is an array ref it's params
 	my @bind_params = ();
@@ -53,20 +51,13 @@ sub query {
 		@bind_params = @$two;
 	}
 
-	# ReturnType is the last passed in element
-	my $last = scalar(@_) - 1;
-	if ($last <= 1) {
+	# ReturnType is the last passed in element (or defaults to info_hash)
+	my $type = $three || $two || "info_hash";
+
+	# If the type is ARRAY it's params with a return type so we default
+	if (ref($type) eq "ARRAY") {
 		$type = "info_hash";
-	} else {
-		$type = $_[$last];
-
-		# If the last one is an array, then the type is 'default'
-		if (ref($type) eq "ARRAY") {
-			$type = "info_hash";
-		}
 	}
-
-	$type ||= "info_hash"; # This should never fire it's a safety
 
 	my $dbh = $self->{'dbh'};
 	my $ret = [];
