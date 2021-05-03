@@ -206,7 +206,7 @@ class DBQuery {
 			return false;
 		} elseif ($return_type === 'one_data' || $return_type === "one") {
 			$ret = $sth->fetch(PDO::FETCH_NUM); // Get the first row
-			$ret = $ret[0]; // Get the first column of the first row
+			$ret = $ret[0] ?? null; // Get the first column of the first row
 
 			// If nothing is in the record set, return an empty string
 			if (!isset($ret)) { $ret = ''; }
