@@ -16,10 +16,11 @@ INSERT INTO "Customer" VALUES('Sean','Hammerhead','Miwaukee','WI',68514,7);
 INSERT INTO "Customer" VALUES('Marcus','Ormstump','Columbus','OH',29841,8);
 INSERT INTO "Customer" VALUES('Susan','Lewiston','Las Vegas','IL',39139,9);
 INSERT INTO "Customer" VALUES('Kristen','Stewart','Detroit','MI',90494,10);
+
 CREATE TABLE "items" (
     "ItemID" INTEGER PRIMARY KEY NOT NULL,
     "ItemDesc" TEXT,
-    "ItemCost" INTEGER
+    "ItemCost" FLOAT
 );
 INSERT INTO "items" VALUES(1,'Chocolate Chips',2.76);
 INSERT INTO "items" VALUES(2,'Canned Air',1.5);
@@ -33,6 +34,7 @@ INSERT INTO "items" VALUES(9,'Microsoft Windows 8',115.64);
 INSERT INTO "items" VALUES(10,'USB Cable',4.27);
 INSERT INTO "items" VALUES(11,'Magnet',0.13);
 INSERT INTO "items" VALUES(12,'Headphones',67.24);
+
 CREATE TABLE "orders" (
     "OrderID" INTEGER PRIMARY KEY,
     "ItemID" INTEGER,
