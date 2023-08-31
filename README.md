@@ -75,7 +75,7 @@ foreach ($data as $i) {
 **one_data** return a single scalar
 
 ```PHP
-$sql = "SELECT CustID FROM Customers WHERE Last = 'Doolis'";
+$sql = "SELECT CustID FROM Customers WHERE Last = 'Doolis';";
 $id  = $dbq->query($sql, 'one_data');
 ```
 
