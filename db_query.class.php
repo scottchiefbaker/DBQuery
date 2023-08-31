@@ -1,6 +1,6 @@
 <?php
 
-define("DB_QUERY_VERSION","1.0.2");
+define("DB_QUERY_VERSION","1.1.0");
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -221,7 +221,14 @@ class DBQuery {
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
-				$ret[$data[0]] = $data[1];
+				// Floats have to be converted to strings to avoid an E_WARNING
+				if (is_float($data[0])) {
+					$key = sprintf("%0.8f", $data[0]);
+				} else {
+					$key = $data[0];
+				}
+
+				$ret[$key] = $data[1];
 			}
 		// Key/Value where we get a specific key/value from a larger list
 		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) {
