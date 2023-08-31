@@ -189,7 +189,7 @@ unit_test(isset($data[0]), "SELECT: OneRowList returned valid data");
 print "\n";
 
 $sql  = "INVALID SQL;";
-$data = $dbq->query($sql);
+$data = $dbq->query($sql,'no_error');
 
 unit_test($data === false, "SELECT: Invalid SQL returns false");
 
