@@ -82,7 +82,17 @@ class DBQuery {
 		// If there is a SQL command, run it
 		if ($sql) {
 			// Prepare the command
-			$sth = $dbh->prepare($sql);
+			try {
+				$sth = $dbh->prepare($sql);
+			} catch (Exception $e) {
+				if ($show_errors) {
+					$msg = "Exception: " . $e->getMessage() . "\n";
+					$this->error_out($msg, 23489);
+				}
+
+				return false;
+			}
+
 			if (!$sth) {
 				list($sql_error_code,$driver_error_code,$err_text) = $dbh->errorInfo();
 
@@ -114,7 +124,17 @@ class DBQuery {
 			}
 
 			// Execute the command with the appropriate replacement variables (if any)
-			$sth->execute($prepare_values);
+			try {
+				$sth->execute($prepare_values);
+			} catch (Exception $e) {
+				if ($show_errors) {
+					$msg = "Exception: " . $e->getMessage() . "\n";
+					$this->error_out($msg, 48203);
+				}
+
+				return false;
+			}
+
 			$affected_rows = $sth->rowCount();
 			$err = $sth->errorInfo();
 
