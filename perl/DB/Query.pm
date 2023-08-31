@@ -49,6 +49,7 @@ sub query {
 	my @bind_params = ();
 	if (ref($two) eq "ARRAY") {
 		@bind_params = @$two;
+		$two         = undef; # To not confuse the next check
 	}
 
 	# ReturnType is the last passed in element (or defaults to info_hash)
@@ -89,8 +90,11 @@ sub query {
 	}
 
 	if ($sql =~ /INSERT|REPLACE/) {
-		#$ret = $dbh->last_insert_id(undef,undef,'foo');
-		$ret = 1;
+		$ret = $dbh->last_insert_id();
+
+		if (!defined($ret)) {
+			$ret = -1;
+		}
 	} elsif (!$sth) {
 		$ret = $rows;
 	} elsif ($sql =~ /DELETE|UPDATE|TRUNCATE/) {
