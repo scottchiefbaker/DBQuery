@@ -104,6 +104,11 @@ unit_test(is_numeric($value), "SELECT: KeyValue value is number");
 // This should be an assoc (not numeric) array
 unit_test(is_assoc($data), "SELECT: KeyValue return associative array");
 
+// Test float keys
+$sql2  = "SELECT ItemCost, ItemID FROM Items LIMIT 5;";
+$data2 = $dbq->query($sql2,'key_value');
+unit_test($data2['15.79000000'] == 4, "SELECT: KeyValue on a float key");
+
 ///////////////////////////////////////
 // Select - OneData
 ///////////////////////////////////////
