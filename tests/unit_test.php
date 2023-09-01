@@ -325,7 +325,7 @@ function unit_test($code,$name = "") {
 		return true;
 	}
 
-	$ok = assert($code);
+	$ok = !!($code);
 
 	$color_ok    = "\033[38;5;2m";
 	$color_bad   = "\033[38;5;1m";
