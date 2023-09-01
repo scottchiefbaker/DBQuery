@@ -14,6 +14,7 @@ class DBQuery {
 	var $dbh                     = null;
 	var $query_log               = "";
 	var $record_limit            = 10000; // Don't return more than X records to prevent memory exhaustion
+	var $db_query_info           = [];
 
 	private $dsn           = "";
 	private $user          = "";
@@ -201,7 +202,7 @@ class DBQuery {
 
 			$info['called_from_file'] = $i[$num]['file'];
 			$info['called_from_line'] = $i[$num]['line'];
-			$this->db_query_info[] = $info;
+			$this->db_query_info[]    = $info;
 
 			return true;
 		}
@@ -396,7 +397,7 @@ class DBQuery {
 
 		$info['called_from_file'] = $i[$num]['file'];
 		$info['called_from_line'] = $i[$num]['line'];
-		$this->db_query_info[] = $info;
+		$this->db_query_info[]    = $info;
 
 		// Log to a file if need be
 		if (!empty($this->query_log) && is_writable($this->query_log)) {
