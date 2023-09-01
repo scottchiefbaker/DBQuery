@@ -320,17 +320,21 @@ function unit_test($code,$name = "") {
 	static $good  = 0;
 	static $bad   = 0;
 
-	if ($name === -1) {
-		printf("Summary: %d of %d tests passed (%0.2f%% failure rate)\n",$good,$count,($bad / $count) * 100);
-
-		return true;
-	}
-
 	$ok = !!($code);
 
 	$color_ok    = "\033[38;5;2m";
 	$color_bad   = "\033[38;5;1m";
 	$color_reset = "\033[0m";
+
+	if ($name === -1) {
+		if ($bad) {
+			printf("%sFail%s: %d of %d tests passed (%0.2f%% failure rate)\n",$color_bad,$color_reset,$good,$count,($bad / $count) * 100);
+		} else {
+			printf("%sPass%s: %d of %d tests passed (%0.2f%% failure rate)\n",$color_ok,$color_reset,$good,$count,($bad / $count) * 100);
+		}
+
+		return true;
+	}
 
 	if ($ok) {
 		printf(" %sOK%s - %s\n",$color_ok,$color_reset,$name);
