@@ -243,7 +243,7 @@ class DBQuery {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				// Floats have to be converted to strings to avoid an E_WARNING
 				if (is_float($data[0])) {
-					$key = sprintf("%0.8f", $data[0]);
+					$key = sprintf("%0.2f", $data[0]);
 				} else {
 					$key = $data[0];
 				}
