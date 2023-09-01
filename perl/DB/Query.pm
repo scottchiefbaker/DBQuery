@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use DBI;
 
-use constant DB_QUERY_VERSION => '1.1.0';
+use constant DB_QUERY_VERSION => '1.1.1';
 
 ##############################################################################
 # Example usage:
