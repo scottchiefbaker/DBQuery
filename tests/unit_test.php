@@ -18,9 +18,9 @@ $last_info   = $dbq->last_info();
 $return_type = $last_info['return_type'];
 
 // Make sure the default return type is InfoHash
-unit_test($return_type === 'info_hash', "SELECT: InfoHashDefault has correct return type");
+unit_test($return_type === 'info_hash'    , "SELECT: InfoHashDefault has correct return type");
 unit_test(is_numeric_array($data) === true, "SELECT: InfoHashDefault returns numeric array");
-unit_test(is_assoc($data[0]), "SELECT: InfoHashDefault returns associate array as the first item");
+unit_test(is_assoc($data[0])              , "SELECT: InfoHashDefault returns associate array as the first item");
 
 $data = $dbq->query($sql,'info_hash');
 
@@ -29,11 +29,11 @@ $cols  = sizeof(array_keys($first));
 $rows  = sizeof($data);
 
 // Make sure we get back the correct number of rows
-unit_test($rows === 8, "SELECT: InfoHash correct rows");
-unit_test($cols === 6, "SELECT: InfoHash correct cols");
+unit_test($rows === 8               , "SELECT: InfoHash correct rows");
+unit_test($cols === 6               , "SELECT: InfoHash correct cols");
 // Make sure it's not an assoc array
-unit_test(is_numeric_array($data), "SELECT: InfoHash returns numeric array");
-unit_test(is_assoc($data[0]), "SELECT: InfoHash returns associate array as the first item");
+unit_test(is_numeric_array($data)   , "SELECT: InfoHash returns numeric array");
+unit_test(is_assoc($data[0])        , "SELECT: InfoHash returns associate array as the first item");
 
 ///////////////////////////////////////
 // Select - InfoHash with Key
@@ -51,13 +51,13 @@ $fkey  = key($data);
 $fval  = $data[$fkey];
 
 // Make sure we get back a numeric array
-unit_test(is_numeric_array($data), "SELECT: InfoHashKey returns a numeric array");
+unit_test(is_numeric_array($data)                 , "SELECT: InfoHashKey returns a numeric array");
 // The first item should not be an array by itself
-unit_test(is_array($first), "SELECT: InfoHashKey first element is an array");
+unit_test(is_array($first)                        , "SELECT: InfoHashKey first element is an array");
 // Make sure we get more than 5 items
-unit_test($count > 4, "SELECT: InfoHashKey returned valid data");
-unit_test($fkey > 3, "SELECT: InfoHashKey first element is correct");
-unit_test($return_type === 'info_hash_with_key', "SELECT: InfoHashKey has correct return type");
+unit_test($count > 4                              , "SELECT: InfoHashKey returned valid data");
+unit_test($fkey > 3                               , "SELECT: InfoHashKey first element is correct");
+unit_test($return_type === 'info_hash_with_key'   , "SELECT: InfoHashKey has correct return type");
 
 ///////////////////////////////////////
 // Select - InfoList
@@ -72,11 +72,11 @@ $cols  = sizeof($first);
 $rows  = sizeof($data);
 
 // Make sure we get back the correct number of rows
-unit_test($rows == 4, "SELECT: InfoList correct rows");
-unit_test($cols == 6, "SELECT: InfoList correct cols");
+unit_test($rows == 4                               , "SELECT: InfoList correct rows");
+unit_test($cols == 6                               , "SELECT: InfoList correct cols");
 // Make sure it's not an assoc array
-unit_test(is_numeric_array($data) === true, "SELECT: InfoList is numeric array");
-unit_test(is_numeric_array($first) === true, "SELECT: InfoList first element is a numeric array");
+unit_test(is_numeric_array($data) === true         , "SELECT: InfoList is numeric array");
+unit_test(is_numeric_array($first) === true        , "SELECT: InfoList first element is a numeric array");
 
 ///////////////////////////////////////
 // Select - KeyValue
@@ -95,14 +95,14 @@ $key   = key($first);
 $value = $first[$key];
 
 // Make sure we get right number of items back
-unit_test($rows === 5, "SELECT: KeyValue correct rows");
-unit_test($cols === 1, "SELECT: KeyValue correct cols");
+unit_test($rows === 5                            , "SELECT: KeyValue correct rows");
+unit_test($cols === 1                            , "SELECT: KeyValue correct cols");
 
 // Make sure we get the right type of things back
-unit_test(is_string($key), "SELECT: KeyValue key is string");
-unit_test(is_numeric($value), "SELECT: KeyValue value is number");
+unit_test(is_string($key)                        , "SELECT: KeyValue key is string");
+unit_test(is_numeric($value)                     , "SELECT: KeyValue value is number");
 // This should be an assoc (not numeric) array
-unit_test(is_assoc($data), "SELECT: KeyValue return associative array");
+unit_test(is_assoc($data)                        , "SELECT: KeyValue return associative array");
 
 // Test float keys
 $sql2  = "SELECT ItemCost, ItemID FROM Items LIMIT 5;";
@@ -126,8 +126,8 @@ if (is_array($data)) {
 
 // Make sure we only get ONE piece of scalar data back
 unit_test($data === 'Jason', "SELECT: OneData correct return value");
-unit_test($count === 1, "SELECT: OneData only one returned item");
-unit_test(is_scalar($data), "SELECT: OneData returned item is scalar");
+unit_test($count === 1     , "SELECT: OneData only one returned item");
+unit_test(is_scalar($data) , "SELECT: OneData returned item is scalar");
 
 ///////////////////////////////////////
 // Select - OneRow
@@ -140,14 +140,14 @@ $fkey = key($data);
 $fval = $data[$fkey];
 
 // Make sure we get back an assoc array that's one dimensional
-unit_test(is_assoc($data) === true, "SELECT: OneRow returns an associative array");
-unit_test(!is_array($fkey), "SELECT: OneRow first key is not an array");
-unit_test(!is_array($fval), "SELECT: OneRow first value is not an array");
+unit_test(is_assoc($data) === true                            , "SELECT: OneRow returns an associative array");
+unit_test(!is_array($fkey)                                    , "SELECT: OneRow first key is not an array");
+unit_test(!is_array($fval)                                    , "SELECT: OneRow first value is not an array");
 
 $sql = "SELECT * FROM Customer WHERE CustID = 9802413;";
-$data = $dbq->query($sql,'one_row');
+$data = $dbq->query($sql, 'one_row');
 
-unit_test(is_array($data) && empty($data), "SELECT: OneRow with WHERE clause with no matches returns an empty array");
+unit_test(is_array($data) && empty($data)                     , "SELECT: OneRow with WHERE clause with no matches returns an empty array");
 
 ///////////////////////////////////////
 // Select - OneColumn
@@ -160,12 +160,12 @@ $data = $dbq->query($sql,'one_column');
 $count = sizeof($data);
 
 // Make sure we get back a numeric array
-unit_test(is_numeric_array($data), "SELECT: OneColumn returns a numeric array");
+unit_test(is_numeric_array($data)                 , "SELECT: OneColumn returns a numeric array");
 // The first item should not be an array by itself
-unit_test(!is_array($data[0]), "SELECT: OneColumn first element is not an array");
+unit_test(!is_array($data[0])                     , "SELECT: OneColumn first element is not an array");
 // Make sure we get more than 5 items
-unit_test($count > 5, "SELECT: OneColumn returned at least five elements");
-unit_test(isset($data[0]), "SELECT: OneColumn returned valid data");
+unit_test($count > 5                              , "SELECT: OneColumn returned at least five elements");
+unit_test(isset($data[0])                         , "SELECT: OneColumn returned valid data");
 
 ///////////////////////////////////////
 // Select - OneRowList
@@ -178,11 +178,11 @@ $data = $dbq->query($sql,'one_row_list');
 $count = sizeof($data);
 
 // Make sure we get back a numeric array
-unit_test(is_numeric_array($data), "SELECT: OneRowList returns a numeric array");
+unit_test(is_numeric_array($data)                 , "SELECT: OneRowList returns a numeric array");
 // The first item should not be an array by itself
-unit_test(!is_array($data[0]), "SELECT: OneRowList first element is not an array");
+unit_test(!is_array($data[0])                     , "SELECT: OneRowList first element is not an array");
 // Make sure we get more than 5 items
-unit_test(isset($data[0]), "SELECT: OneRowList returned valid data");
+unit_test(isset($data[0])                         , "SELECT: OneRowList returned valid data");
 
 ///////////////////////////////////////
 // Select - Broken SQL
@@ -204,10 +204,10 @@ $affected = $dbq->query("INSERT INTO 'items' VALUES(?,?,?);",[null,'Twinkies',3.
 unit_test(is_numeric($affected) && $affected > 10, "NOERROR: Returns valid data");
 
 $affected = $dbq->query("INSERT INTO 'items' VALUES(1,'Duplicate ID',2.76);","no_error");
-unit_test($affected === false, "NOERROR: Second param returns false");
+unit_test($affected === false,                     "NOERROR: Second param returns false");
 
 $affected = $dbq->query("INSERT INTO 'items' VALUES(?,?,?);",[1,'Duplicate ID',3.75],"no_error");
-unit_test($affected === false, "NOERROR: Third param returns false");
+unit_test($affected === false,                     "NOERROR: Third param returns false");
 
 ///////////////////////////////////////
 // INSERT
@@ -233,7 +233,7 @@ unit_test($id > 3, "INSERT: Returns valid InsertID");
 print "\n";
 
 $affected = $dbq->query("UPDATE orders SET ItemCount = ItemCount + 1 WHERE CustID = 10;");
-unit_test($affected > 2, "UPDATE: Return correct number of affected rows");
+unit_test($affected > 2,   "UPDATE: Return correct number of affected rows");
 
 $affected = $dbq->query("UPDATE orders SET ItemCount = ItemCount + 1 WHERE CustID = 1000;");
 unit_test($affected === 0, "UPDATE: Return correct number of affected rows for missing CustID");
@@ -248,13 +248,13 @@ $affected = $dbq->query("DELETE FROM orders WHERE CustID = 99999");
 unit_test($affected === 0, "DELETE: Removing a non-item returns 0");
 
 $affected = $dbq->query("DELETE FROM orders WHERE CustID = 8");
-unit_test($affected > 4, "DELETE: Removing known order returns the correct amount");
+unit_test($affected > 4,   "DELETE: Removing known order returns the correct amount");
 
 $affected = $dbq->query("DELETE FROM orders WHERE CustID = 8");
 unit_test($affected === 0, "DELETE: Removing the same order returns 0");
 
 $affected = $dbq->query("DELETE FROM orders");
-unit_test($affected > 0, "DELETE: Removing everything returns more than 0");
+unit_test($affected > 0,   "DELETE: Removing everything returns more than 0");
 
 ///////////////////////////////////////
 // Raw PDO
