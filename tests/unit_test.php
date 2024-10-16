@@ -265,7 +265,8 @@ $ok = $dbq->dbh->exec("VACUUM");
 unit_test($ok > 0, "RAW PDO Command OK '$ok'");
 
 print "\n";
-unit_test(-1,-1);
+$exit_code = unit_test(-1,-1);
+exit($exit_code);
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -329,11 +330,13 @@ function unit_test($code,$name = "") {
 	if ($name === -1) {
 		if ($bad) {
 			printf("%sFail%s: %d of %d tests passed (%0.2f%% failure rate)\n",$color_bad,$color_reset,$good,$count,($bad / $count) * 100);
+			$ret = $bad;
 		} else {
 			printf("%sPass%s: %d of %d tests passed (%0.2f%% failure rate)\n",$color_ok,$color_reset,$good,$count,($bad / $count) * 100);
+			$ret = 0;
 		}
 
-		return true;
+		return $ret;
 	}
 
 	if ($ok) {
