@@ -114,5 +114,5 @@ Parameter Binding
 $sql    = "INSERT INTO Names (First, Last, Age) VALUES (?, ?, ?);";
 $params = array("Jason", "Doolis", 14);
 
-$id = $dbq->query($sql,$params);
+$id = $dbq->query($sql, $params);
 ```
