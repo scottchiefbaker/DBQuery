@@ -1,0 +1,13 @@
+{
+    "name": "scottchiefbaker/dbquery",
+    "description": "DBQuery is a PHP database library to simplify fetching and iterating over your data.",
+    "require": {
+        "php": ">=8.0"
+    },
+	"license": "MIT",
+	"keywords": ["db", "database", "query", "iterate"],
+	"homepage": "https://github.com/scottchiefbaker/DBQuery",
+	"autoload": {
+		"files": ["db_query.class.php"]
+	}
+}
