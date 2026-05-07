@@ -1,9 +1,10 @@
 DBQuery
 =======
 
-DBQuery is a PHP database library to simplify fetching data from your database.
-It supports any database that PDO supports, and has been tested extensively
-with MySQL and SQLite. DBQuery has been tested on PHP versions: 8.1, 8.2 and 8.3.
+DBQuery is a PHP database library to simplify fetching and iterating over your
+data. It supports any database that PDO supports, and has been tested
+extensively with MySQL and SQLite. DBQuery has been tested on PHP versions:
+8.1, 8.2 and 8.3.
 
 Installation
 ------------
