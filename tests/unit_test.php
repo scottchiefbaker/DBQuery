@@ -5,8 +5,6 @@ error_reporting(E_ALL);
 $dbq = init_db();
 $dbq->show_errors = false;
 
-assert_options(ASSERT_WARNING,  false);
-
 ///////////////////////////////////////
 // Select - InfoHash
 ///////////////////////////////////////
@@ -461,8 +459,13 @@ unit_test($dbq->is_cli() === true, "is_cli: returns true in CLI environment");
 print "\n";
 
 $dbq3 = new DBQuery("sqlite::memory:");
-$info = @$dbq3->last_info();
-unit_test($info === null, "last_info: returns null with no queries run");
+try {
+	$info = $dbq3->last_info();
+	$ok   = false;
+} catch (\TypeError $e) {
+	$ok = true;
+}
+unit_test($ok, "last_info: throws TypeError with no queries run");
 
 ///////////////////////////////////////
 // number_ordinal
@@ -523,7 +526,7 @@ function init_db() {
 function is_assoc($arr) {
 	if (!is_array($arr)) { return false; }
 
-    return array_keys($arr) !== range(0, count($arr) - 1);
+	return array_keys($arr) !== range(0, count($arr) - 1);
 }
 
 function is_numeric_array($array) {
