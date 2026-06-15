@@ -265,6 +265,206 @@ $ok = $dbq->dbh->exec("VACUUM");
 unit_test($ok > 0, "RAW PDO Command OK '$ok'");
 
 ///////////////////////////////////////
+// Select - 'one' alias
+///////////////////////////////////////
+print "\n";
+
+$sql  = "SELECT First FROM Customer WHERE Last = 'Doolis' ORDER BY CustID;";
+$data = $dbq->query($sql,'one');
+unit_test($data === 'Jason', "SELECT: 'one' alias same as one_data");
+
+///////////////////////////////////////
+// Select - OneData with no results
+///////////////////////////////////////
+print "\n";
+
+$sql = "SELECT First FROM Customer WHERE CustID = 99999;";
+$data = $dbq->query($sql,'one_data');
+unit_test($data === '', "SELECT: OneData with no matches returns empty string");
+
+///////////////////////////////////////
+// Select - InfoHash with no results
+///////////////////////////////////////
+print "\n";
+
+$sql = "SELECT * FROM Customer WHERE CustID = 99999;";
+$data = $dbq->query($sql,'info_hash');
+unit_test(is_array($data) && empty($data), "SELECT: InfoHash with no matches returns empty array");
+
+///////////////////////////////////////
+// Select - KeyValue with no results
+///////////////////////////////////////
+print "\n";
+
+$sql = "SELECT Last, CustID FROM Customer WHERE CustID = 99999;";
+$data = $dbq->query($sql,'key_value');
+unit_test(is_array($data) && empty($data), "SELECT: KeyValue with no matches returns empty array");
+
+///////////////////////////////////////
+// Select - KeyPair
+///////////////////////////////////////
+print "\n";
+
+$sql  = "SELECT * FROM Customer LIMIT 5;";
+$data = $dbq->query($sql,'key_pair:CustID,First');
+
+$last_info = $dbq->last_info();
+unit_test($last_info['return_type'] === 'key_pair', "SELECT: KeyPair has correct return type");
+unit_test(is_assoc($data)                         , "SELECT: KeyPair returns associative array");
+unit_test(sizeof($data) === 5                     , "SELECT: KeyPair correct rows");
+unit_test($data[1] === 'Jason'                    , "SELECT: KeyPair first value correct");
+
+///////////////////////////////////////
+// Select - InfoHash with Key array mode
+///////////////////////////////////////
+print "\n";
+
+$sql  = "SELECT * FROM Customer WHERE State IN ('OR','TX') ORDER BY State;";
+$data = $dbq->query($sql,'info_hash|State[]');
+
+$last_info = $dbq->last_info();
+unit_test($last_info['return_type'] === 'info_hash_with_key', "SELECT: InfoHashKey[] has correct return type");
+unit_test(is_array($data['OR'])                             , "SELECT: InfoHashKey[] OR key is an array");
+unit_test(sizeof($data['OR']) === 3                         , "SELECT: InfoHashKey[] OR has 3 entries");
+
+///////////////////////////////////////
+// Select - LIMIT 1 auto-detected as one_row
+///////////////////////////////////////
+print "\n";
+
+$sql  = "SELECT * FROM Customer LIMIT 1;";
+$data = $dbq->query($sql);
+$last_info = $dbq->last_info();
+unit_test($last_info['return_type'] === 'one_row', "SELECT: Auto-detect LIMIT 1 returns one_row");
+unit_test(is_assoc($data) && !empty($data)       , "SELECT: Auto-detect LIMIT 1 data is assoc and non-empty");
+
+///////////////////////////////////////
+// Explicit return types
+///////////////////////////////////////
+print "\n";
+
+$data = $dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (1,2,10);", 'insert_id');
+unit_test(is_int($data) && $data > 0, "INSERT: Explicit insert_id return type");
+
+$data = $dbq->query("DELETE FROM orders WHERE 1=1;", 'affected_rows');
+unit_test(is_int($data), "DELETE: Explicit affected_rows return type");
+
+///////////////////////////////////////
+// Prepared statements with info_hash
+///////////////////////////////////////
+print "\n";
+
+$sql  = "SELECT * FROM Customer WHERE CustID = ?;";
+$data = $dbq->query($sql,[1],'info_hash');
+unit_test(sizeof($data) === 1                 , "SELECT: Prepared statement with info_hash correct rows");
+unit_test($data[0]['First'] === 'Jason'       , "SELECT: Prepared statement with info_hash correct data");
+
+$data = $dbq->query($sql,[99999],'one_data');
+unit_test($data === ''                        , "SELECT: Prepared statement with one_data no match returns empty string");
+
+///////////////////////////////////////
+// delay_connect
+///////////////////////////////////////
+print "\n";
+
+$dbq2 = new DBQuery("sqlite::memory:", "", "", ['delay_connect' => true]);
+unit_test($dbq2->dbh === null, "delay_connect: dbh is null before first query");
+
+$dbq2->query("CREATE TABLE _delay_test (id INTEGER PRIMARY KEY, val TEXT);");
+unit_test($dbq2->dbh !== null, "delay_connect: dbh is connected after first query");
+
+$dbq2->query("INSERT INTO _delay_test (val) VALUES ('hello');");
+$data = $dbq2->query("SELECT * FROM _delay_test;");
+unit_test(sizeof($data) === 1 && $data[0]['val'] === 'hello', "delay_connect: query works after auto-connect");
+
+///////////////////////////////////////
+// quote()
+///////////////////////////////////////
+print "\n";
+
+$quoted = $dbq->quote("it's a test");
+unit_test(is_string($quoted) && strlen($quoted) > strlen("it's a test"), "quote: returns a quoted string");
+
+///////////////////////////////////////
+// begin / commit / rollback
+///////////////////////////////////////
+print "\n";
+
+$ok = $dbq->begin();
+unit_test($ok === true, "Transaction: begin() returns true");
+
+$dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (1,1,5);");
+$dbq->rollback();
+
+$data = $dbq->query("SELECT * FROM orders WHERE CustID = 1;");
+unit_test(empty($data), "Transaction: rollback undoes insert");
+
+$dbq->begin();
+$dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (2,2,3);");
+$dbq->commit();
+
+$data = $dbq->query("SELECT * FROM orders WHERE CustID = 2;");
+unit_test(sizeof($data) === 1, "Transaction: commit persists insert");
+
+///////////////////////////////////////
+// CREATE / DROP
+///////////////////////////////////////
+print "\n";
+
+$data = $dbq->query("CREATE TABLE _tmp_test (x INTEGER);");
+unit_test($data === 1, "CREATE: returns 1");
+
+$data = $dbq->query("DROP TABLE _tmp_test;");
+unit_test($data === 1, "DROP: returns 1");
+
+///////////////////////////////////////
+// REPLACE
+///////////////////////////////////////
+print "\n";
+
+$data = $dbq->query("REPLACE INTO Customer (First, Last, City, State, Zipcode, CustID) VALUES ('ReplaceTest', 'User', 'Nowhere', 'XX', 12345, 1);");
+unit_test($data === 1, "REPLACE: returns affected rows");
+
+$data = $dbq->query("SELECT * FROM Customer WHERE CustID = 1;");
+unit_test($data[0]['First'] === 'ReplaceTest', "REPLACE: data was actually replaced");
+
+///////////////////////////////////////
+// query_summary()
+///////////////////////////////////////
+print "\n";
+
+$summary = $dbq->query_summary();
+unit_test(is_string($summary) && !empty($summary)          , "query_summary: returns non-empty string");
+unit_test(strpos($summary, 'Total Queries') !== false       , "query_summary: contains total queries");
+
+///////////////////////////////////////
+// sql_clean()
+///////////////////////////////////////
+print "\n";
+
+$cleaned = $dbq->sql_clean("SELECT * FROM Customer WHERE CustID = 1;", 0);
+unit_test(strpos($cleaned, 'SELECT') !== false              , "sql_clean: preserves SELECT (non-html mode)");
+
+$cleaned_html = $dbq->sql_clean("SELECT * FROM Customer;", 1);
+unit_test(strpos($cleaned_html, '<span') !== false           , "sql_clean: html mode adds spans");
+
+///////////////////////////////////////
+// is_cli()
+///////////////////////////////////////
+print "\n";
+
+unit_test($dbq->is_cli() === true, "is_cli: returns true in CLI environment");
+
+///////////////////////////////////////
+// last_info() with no queries
+///////////////////////////////////////
+print "\n";
+
+$dbq3 = new DBQuery("sqlite::memory:");
+$info = @$dbq3->last_info();
+unit_test($info === null, "last_info: returns null with no queries run");
+
+///////////////////////////////////////
 // number_ordinal
 ///////////////////////////////////////
 print "\n";
