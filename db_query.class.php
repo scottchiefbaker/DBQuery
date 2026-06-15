@@ -5,23 +5,27 @@ define("DB_QUERY_VERSION","1.1.3");
 //////////////////////////////////////////////////////////////////////////////
 
 class DBQuery {
-	var $debug                   = 0;
-	var $show_errors             = 1;   // If this is set to zero be silent about all errors
-	var $slow_query_time         = 100; // Highlight queries that take longer than this (in ms)
-	var $external_error_function = "";  // Override the built in error function
-	var $db_name                 = "";  // Placeholder
-	var $dbh_cache               = [];
-	var $dbh                     = null;
-	var $query_log               = "";
-	var $record_limit            = 10000; // Don't return more than X records to prevent memory exhaustion
-	var $db_query_info           = [];
+	public int $debug               = 0;
+	public bool $show_errors        = true;
+	public int $slow_query_time     = 100; // Highlight queries that take longer than this (in ms)
+	public $external_error_function = "";  // Override the built in error function (callable)
+	public string $db_name          = "";
+	public array $dbh_cache         = [];
+	public ?PDO $dbh                = null;
+	public string $query_log        = "";
+	public int $record_limit        = 10000; // Don't return more than X records to prevent memory exhaustion
+	public array $db_query_info     = [];
 
-	private $dsn           = "";
-	private $user          = "";
-	private $pass          = "";
-	private $delay_connect = false;
+	private string $dsn             = "";
+	private string $user            = "";
+	private string $pass            = "";
+	private bool $delay_connect     = false;
 
-	public function __construct($dsn,$user = "",$pass = "",$opts = []) {
+	private ?PDOStatement $sth      = null;
+	private ?int $fetch_num         = null;
+	private ?string $query_sql      = null;
+
+	public function __construct(string $dsn, string $user = "", string $pass = "", array $opts = []) {
 		// Delay connection until the first query
 		$delay_connect = $opts['delay_connect'] ?? false;
 
@@ -36,7 +40,7 @@ class DBQuery {
 		}
 	}
 
-	public function connect_db($dsn,$user = "",$pass = "") {
+	public function connect_db(string $dsn, string $user = "", string $pass = ""): PDO|false {
 		$ret = new PDO($dsn,$user,$pass);
 
 		if ($ret) {
@@ -46,7 +50,7 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function query($sql = "",$return_type = "",$third = '') {
+	public function query(string $sql = "", string|array $return_type = "", string $third = ''): mixed {
 		// If we're delaying and we don't already have a DB handle
 		if ($this->delay_connect && !$this->dbh) {
 			$ok = $this->connect_db($this->dsn, $this->user, $this->pass);
@@ -181,7 +185,7 @@ class DBQuery {
 			}
 
 			$this->sth = $sth; // Cache the $sth
-			$this->sql = $sql;
+			$this->query_sql = $sql;
 
 			$total = microtime(1) - $start;
 
@@ -210,7 +214,7 @@ class DBQuery {
 		$is_fetch = 0;
 		if (!$sql && $this->sth) {
 			$sth = $this->sth;
-			$sql = $this->sql;
+			$sql = $this->query_sql;
 			$is_fetch = 1;
 		}
 
@@ -302,7 +306,7 @@ class DBQuery {
 		} elseif ($is_fetch || (($return_type == 'info_hash' || $return_type == "") && preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql))) {
 			if (isset($this->sth)) {
 				$sth = $this->sth;
-				$sql = $this->sql;
+				$sql = $this->query_sql;
 			}
 
 			// Loop through the data and return an info hash
@@ -318,7 +322,7 @@ class DBQuery {
 			// we hit the end of the record set so we need to zero
 			// out all the fetch related vars
 			if (isset($this->sth) && !isset($ret)) {
-				$this->sql = $this->sth = $this->fetch_num = NULL;
+				$this->query_sql = $this->sth = $this->fetch_num = NULL;
 				return array();
 			}
 
@@ -421,7 +425,7 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function error_out($msg, $num = null) {
+	public function error_out(string|array $msg, ?int $num = null) {
 		// Don't print any errors if we're not showing errors
 		if (!$this->show_errors) { return false; }
 
@@ -468,7 +472,7 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function query_summary() {
+	public function query_summary(): string {
 		if (empty($this->db_query_info)) {
 			return "";
 		}
@@ -556,7 +560,7 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function sql_clean($sql,$htmlize = 1) {
+	public function sql_clean(string $sql, int $htmlize = 1): string {
 		$ret = preg_replace("/\n|\r/"," ",$sql); // Make it all one line
 		$ret = preg_replace("/\s+/"," ",$ret); // Remove double spaces
 
@@ -585,27 +589,27 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function debug_log($str) {
+	public function debug_log(string $str): void {
 		if ($this->debug) { print "<div>$str</div>\n"; }
 	}
 
-	public function quote($str) {
+	public function quote(string $str): string|false {
 		return $this->dbh->quote($str);
 	}
 
-	public function begin() {
+	public function begin(): bool {
 		return $this->dbh->beginTransaction();
 	}
 
-	public function commit() {
+	public function commit(): bool {
 		return $this->dbh->commit();
 	}
 
-	public function rollback() {
+	public function rollback(): bool {
 		return $this->dbh->rollback();
 	}
 
-	public function last_info() {
+	public function last_info(): array {
 		// The last element of the info array
 		$arr  = $this->db_query_info;
 		$info = array_slice($arr,-1,1);
@@ -616,7 +620,7 @@ class DBQuery {
 		return $ret;
 	}
 
-	public function is_cli() {
+	public function is_cli(): bool {
 		if (php_sapi_name() == 'cli') {
 			return true;
 		}
