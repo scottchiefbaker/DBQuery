@@ -264,6 +264,27 @@ print "\n";
 $ok = $dbq->dbh->exec("VACUUM");
 unit_test($ok > 0, "RAW PDO Command OK '$ok'");
 
+///////////////////////////////////////
+// number_ordinal
+///////////////////////////////////////
+print "\n";
+
+unit_test($dbq->number_ordinal(1)  === 'st', "number_ordinal: 1st");
+unit_test($dbq->number_ordinal(2)  === 'nd', "number_ordinal: 2nd");
+unit_test($dbq->number_ordinal(3)  === 'rd', "number_ordinal: 3rd");
+unit_test($dbq->number_ordinal(4)  === 'th', "number_ordinal: 4th");
+unit_test($dbq->number_ordinal(10) === 'th', "number_ordinal: 10th");
+unit_test($dbq->number_ordinal(11) === 'th', "number_ordinal: 11th");
+unit_test($dbq->number_ordinal(12) === 'th', "number_ordinal: 12th");
+unit_test($dbq->number_ordinal(13) === 'th', "number_ordinal: 13th");
+unit_test($dbq->number_ordinal(21) === 'st', "number_ordinal: 21st");
+unit_test($dbq->number_ordinal(22) === 'nd', "number_ordinal: 22nd");
+unit_test($dbq->number_ordinal(23) === 'rd', "number_ordinal: 23rd");
+unit_test($dbq->number_ordinal(100) === 'th', "number_ordinal: 100th");
+unit_test($dbq->number_ordinal(111) === 'th', "number_ordinal: 111th");
+unit_test($dbq->number_ordinal(112) === 'th', "number_ordinal: 112th");
+unit_test($dbq->number_ordinal(113) === 'th', "number_ordinal: 113th");
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);

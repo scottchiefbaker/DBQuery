@@ -456,14 +456,14 @@ class DBQuery {
 	}
 
 	public function number_ordinal($num) {
-		$ones = $num % 100;
+		$ones = $num % 10;
+		$tens = $num % 100;
 
-		if ($ones == 1) { $ret = "st"; }
+		if ($tens >= 11 && $tens <= 13) { $ret = "th"; }
+		elseif ($ones == 1) { $ret = "st"; }
 		elseif ($ones == 2) { $ret = "nd"; }
 		elseif ($ones == 3) { $ret = "rd"; }
-		elseif ($ones >= 4) { $ret = "th"; }
-		elseif ($ones >= 0) { $ret = "th"; } // For 100
-		else { $ret = "??"; }
+		else { $ret = "th"; }
 
 		return $ret;
 	}
