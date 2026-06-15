@@ -459,13 +459,8 @@ unit_test($dbq->is_cli() === true, "is_cli: returns true in CLI environment");
 print "\n";
 
 $dbq3 = new DBQuery("sqlite::memory:");
-try {
-	$info = $dbq3->last_info();
-	$ok   = false;
-} catch (\TypeError $e) {
-	$ok = true;
-}
-unit_test($ok, "last_info: throws TypeError with no queries run");
+$info = $dbq3->last_info();
+unit_test($info === [], "last_info: returns empty array with no queries run");
 
 ///////////////////////////////////////
 // number_ordinal

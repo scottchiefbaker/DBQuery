@@ -610,6 +610,10 @@ class DBQuery {
 	}
 
 	public function last_info(): array {
+		if (empty($this->db_query_info)) {
+			return [];
+		}
+
 		// The last element of the info array
 		$arr  = $this->db_query_info;
 		$info = array_slice($arr,-1,1);
