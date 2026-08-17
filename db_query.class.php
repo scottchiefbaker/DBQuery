@@ -147,7 +147,7 @@ class DBQuery {
 				$has_error = true;
 			}
 
-			unset($this->sth); // Remove any cached statement handles (from fetches)
+			$this->sth = null; // Remove any cached statement handles (from fetches)
 		// No SQL, but a cached statement handle (i.e. it's a fetch)
 		} elseif (!$sql && $this->sth) {
 			// Do nothing we already have the statement handle
