@@ -483,6 +483,99 @@ unit_test($dbq->number_ordinal(111) === 'th', "number_ordinal: 111th");
 unit_test($dbq->number_ordinal(112) === 'th', "number_ordinal: 112th");
 unit_test($dbq->number_ordinal(113) === 'th', "number_ordinal: 113th");
 
+///////////////////////////////////////
+// error_out()
+///////////////////////////////////////
+print "\n";
+
+// No DBH connection present
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->dbh = null;
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("SELECT 1;");
+}, 15990, "error_out: DBH connection not present");
+
+// Exception during prepare (PHP 8 PDO defaults to ERRMODE_EXCEPTION)
+$db_err = new DBQuery("sqlite::memory:");
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("INVALID SQL;");
+}, 23489, "error_out: prepare exception");
+
+// Exception during execute
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->query("CREATE TABLE _err_notnull (id INTEGER NOT NULL);");
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("INSERT INTO _err_notnull VALUES (NULL);");
+}, 48203, "error_out: execute exception");
+
+// record_limit exceeded - info_hash
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->query("CREATE TABLE _err_rows (id INTEGER);");
+$db_err->query("INSERT INTO _err_rows VALUES (1),(2),(3);");
+$db_err->record_limit = 1;
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("SELECT * FROM _err_rows;", 'info_hash');
+}, 12940, "error_out: info_hash exceeds record_limit");
+
+// record_limit exceeded - info_hash with key
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->query("CREATE TABLE _err_rows (id INTEGER);");
+$db_err->query("INSERT INTO _err_rows VALUES (1),(2),(3);");
+$db_err->record_limit = 1;
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("SELECT * FROM _err_rows;", 'info_hash|id');
+}, 13039, "error_out: info_hash key exceeds record_limit");
+
+// record_limit exceeded - info_list
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->query("CREATE TABLE _err_rows (id INTEGER);");
+$db_err->query("INSERT INTO _err_rows VALUES (1),(2),(3);");
+$db_err->record_limit = 1;
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("SELECT * FROM _err_rows;", 'info_list');
+}, 38103, "error_out: info_list exceeds record_limit");
+
+// Unknown return type
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->query("CREATE TABLE _err_rows (id INTEGER);");
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("SELECT * FROM _err_rows;", 'bogus');
+}, 13843, "error_out: unknown return type");
+
+// Unable to create a STH (silent mode, so prepare returns false)
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("INVALID SQL;");
+}, 34102, "error_out: unable to create STH", function($msg) {
+	return is_array($msg) && strpos($msg[0], 'Unable to create') !== false;
+});
+
+// Syntax error detected via errorInfo (silent mode)
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->query("CREATE TABLE _err_notnull (id INTEGER NOT NULL);");
+$db_err->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->query("INSERT INTO _err_notnull VALUES (NULL);");
+}, 34913, "error_out: syntax error from errorInfo");
+
+// Default error number when none is passed
+$db_err = new DBQuery("sqlite::memory:");
+expect_error_out($db_err, function() use ($db_err) {
+	$db_err->error_out("boom");
+}, 89317, "error_out: default error number");
+
+// show_errors false returns false without invoking the hook
+$db_err = new DBQuery("sqlite::memory:");
+$db_err->show_errors = false;
+$hook_fired = false;
+$db_err->external_error_function = function($m,$n) use (&$hook_fired) {
+	$hook_fired = true;
+	throw new RuntimeException("should not fire");
+};
+$ret = $db_err->error_out("x");
+unit_test($ret === false && $hook_fired === false, "error_out: show_errors=false returns false and skips hook");
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);
@@ -569,4 +662,42 @@ function unit_test($code,$name = "") {
 	$count++;
 
 	return $ok;
+}
+
+class ErrorOutException extends RuntimeException {
+	public $msg;
+	public $num;
+
+	public function __construct($msg, $num) {
+		$this->msg = $msg;
+		$this->num = $num;
+		parent::__construct("ErrorOut #$num");
+	}
+}
+
+function expect_error_out($dbq, callable $fn, $expected_num, $name = "", $msg_check = null) {
+	$prev_hook   = $dbq->external_error_function;
+	$prev_errors = $dbq->show_errors;
+
+	$dbq->show_errors = true;
+	$dbq->external_error_function = function($m,$n) {
+		throw new ErrorOutException($m,$n);
+	};
+
+	$caught = null;
+	try {
+		$fn();
+	} catch (ErrorOutException $e) {
+		$caught = $e;
+	}
+
+	$dbq->external_error_function = $prev_hook;
+	$dbq->show_errors             = $prev_errors;
+
+	$ok = ($caught !== null && $caught->num === $expected_num);
+	if ($ok && $msg_check) {
+		$ok = (bool) $msg_check($caught->msg);
+	}
+
+	return unit_test($ok, $name);
 }
