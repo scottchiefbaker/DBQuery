@@ -87,6 +87,8 @@ class DBQuery {
 		$err_code      = 0;
 		$err           = array();
 		$affected_rows = 0;
+		$key_field     = null;
+		$wants_array   = 0;
 
 		// If there is a SQL command, run it
 		if ($sql) {
