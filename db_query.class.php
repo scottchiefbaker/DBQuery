@@ -389,9 +389,11 @@ class DBQuery {
 		} elseif ($return_type == 'insert_id' || preg_match("/^INSERT/i",$sql)) {
 			// Get the ID from the inserted record, and convert it to an integer
 			$insert_id = $ret = $dbh->lastInsertId();
-			if (is_numeric($ret)) { $ret = intval($ret); }
-
-			if (!$ret) { $ret = true; }
+			if (is_numeric($ret)) {
+				$ret = intval($ret);
+			} else {
+				$ret = 0;
+			}
 
 			$return_type = 'insert_id';
 			$return_recs = 1;
