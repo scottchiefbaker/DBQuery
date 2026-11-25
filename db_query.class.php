@@ -269,6 +269,11 @@ class DBQuery {
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
+				if ($count >= $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 38104);
+					return false;
+				}
+
 				// Floats have to be converted to strings to avoid an E_WARNING
 				if (is_float($data[0])) {
 					$key = sprintf("%0.2f", $data[0]);
@@ -277,22 +282,35 @@ class DBQuery {
 				}
 
 				$ret[$key] = $data[1];
+				$count++;
 			}
 		// Key/Value where we get a specific key/value from a larger list
 		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
+				if ($count >= $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 38105);
+					return false;
+				}
+
 				$key   = $data[$m[1]];
 				$value = $data[$m[2]];
 
 				if ($key) {
 					$ret[$key] = $value;
 				}
+				$count++;
 			}
 
 			$return_type = 'key_pair';
 		} elseif ($return_type == 'one_column') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
+				if ($count >= $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 38106);
+					return false;
+				}
+
 				$ret[] = $data[0];
+				$count++;
 			}
 		} elseif ($return_type == 'one_row_list') {
 			$ret         = $sth->fetch(PDO::FETCH_NUM);
