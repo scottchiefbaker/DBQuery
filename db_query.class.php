@@ -89,6 +89,13 @@ class DBQuery {
 			$this->error_out('A fetch is in progress. Drain it with query("") before running another query.', 27414);
 		}
 
+		// Pulls during a fetch must be info_hash so they honour the chunk limit and clear state
+		if (!$sql && $this->sth && !preg_match("/^(info_hash|fetch)/", $return_type)) {
+			if (!$show_errors) { return false; }
+
+			$this->error_out('A fetch is in progress. Pull it with query("", "info_hash") or query("") until it is drained.', 27415);
+		}
+
 		$has_error     = false;
 		$err_text      = '';
 		$err_code      = 0;
