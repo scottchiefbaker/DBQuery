@@ -494,8 +494,10 @@ class DBQuery {
 		$info['called_from_line'] = $call_location['line'];
 		$this->db_query_info[]    = $info;
 
-		// Log to a file if need be
-		if (!empty($this->query_log) && is_writable($this->query_log)) {
+		// Log to a file if needed. Attempting to open in append mode is
+		// intentional: is_writable() is false for a file that does not exist,
+		// even though its parent directory may allow the file to be created.
+		if (!empty($this->query_log)) {
 			$sql_log = $this->query_log;
 			$fp      = @fopen($sql_log,"a");
 

@@ -481,21 +481,24 @@ unit_test(isset($fallback_location['file'], $fallback_location['line']) && is_st
 ///////////////////////////////////////
 print "\n";
 
-unit_test($dbq->number_ordinal(1)  === 'st', "number_ordinal: 1st");
-unit_test($dbq->number_ordinal(2)  === 'nd', "number_ordinal: 2nd");
-unit_test($dbq->number_ordinal(3)  === 'rd', "number_ordinal: 3rd");
-unit_test($dbq->number_ordinal(4)  === 'th', "number_ordinal: 4th");
-unit_test($dbq->number_ordinal(10) === 'th', "number_ordinal: 10th");
-unit_test($dbq->number_ordinal(11) === 'th', "number_ordinal: 11th");
-unit_test($dbq->number_ordinal(12) === 'th', "number_ordinal: 12th");
-unit_test($dbq->number_ordinal(13) === 'th', "number_ordinal: 13th");
-unit_test($dbq->number_ordinal(21) === 'st', "number_ordinal: 21st");
-unit_test($dbq->number_ordinal(22) === 'nd', "number_ordinal: 22nd");
-unit_test($dbq->number_ordinal(23) === 'rd', "number_ordinal: 23rd");
-unit_test($dbq->number_ordinal(100) === 'th', "number_ordinal: 100th");
-unit_test($dbq->number_ordinal(111) === 'th', "number_ordinal: 111th");
-unit_test($dbq->number_ordinal(112) === 'th', "number_ordinal: 112th");
-unit_test($dbq->number_ordinal(113) === 'th', "number_ordinal: 113th");
+$ordinal_method = new ReflectionMethod(DBQuery::class, 'number_ordinal');
+unit_test($ordinal_method->isPrivate(), "number_ordinal: method is private");
+
+unit_test($ordinal_method->invoke($dbq, 1)  === 'st', "number_ordinal: 1st");
+unit_test($ordinal_method->invoke($dbq, 2)  === 'nd', "number_ordinal: 2nd");
+unit_test($ordinal_method->invoke($dbq, 3)  === 'rd', "number_ordinal: 3rd");
+unit_test($ordinal_method->invoke($dbq, 4)  === 'th', "number_ordinal: 4th");
+unit_test($ordinal_method->invoke($dbq, 10) === 'th', "number_ordinal: 10th");
+unit_test($ordinal_method->invoke($dbq, 11) === 'th', "number_ordinal: 11th");
+unit_test($ordinal_method->invoke($dbq, 12) === 'th', "number_ordinal: 12th");
+unit_test($ordinal_method->invoke($dbq, 13) === 'th', "number_ordinal: 13th");
+unit_test($ordinal_method->invoke($dbq, 21) === 'st', "number_ordinal: 21st");
+unit_test($ordinal_method->invoke($dbq, 22) === 'nd', "number_ordinal: 22nd");
+unit_test($ordinal_method->invoke($dbq, 23) === 'rd', "number_ordinal: 23rd");
+unit_test($ordinal_method->invoke($dbq, 100) === 'th', "number_ordinal: 100th");
+unit_test($ordinal_method->invoke($dbq, 111) === 'th', "number_ordinal: 111th");
+unit_test($ordinal_method->invoke($dbq, 112) === 'th', "number_ordinal: 112th");
+unit_test($ordinal_method->invoke($dbq, 113) === 'th', "number_ordinal: 113th");
 
 ///////////////////////////////////////
 // error_out()
@@ -903,7 +906,6 @@ print "\n";
 
 $log_file = sys_get_temp_dir() . "/db_query_test_" . getmypid() . ".csv";
 @unlink($log_file);
-touch($log_file);
 
 $ql = new DBQuery("sqlite::memory:");
 $ql->query("CREATE TABLE _ql (id INTEGER);");
