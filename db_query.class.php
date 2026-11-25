@@ -61,11 +61,6 @@ class DBQuery {
 
 		$dbh = $this->dbh;
 
-		// Test if the DB connection is there
-		if (!$dbh) {
-			$this->error_out('DBH connection not present', 15990);
-		}
-
 		$prepare_values = array();
 		if (is_array($return_type)) {
 			$prepare_values = $return_type;
@@ -76,6 +71,13 @@ class DBQuery {
 			$show_errors = 0;
 		} else {
 			$show_errors = 1;
+		}
+
+		// Test if the DB connection is there
+		if (!$dbh) {
+			if (!$show_errors) { return false; }
+
+			$this->error_out('DBH connection not present', 15990);
 		}
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
