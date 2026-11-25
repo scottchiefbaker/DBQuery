@@ -415,9 +415,9 @@ class DBQuery {
 			if (!$show_errors) { return false; }
 
 			$html_sql = "<pre>" . $this->sql_clean($sql) . "</pre>";
-			$error    = "<div>Not sure about the return type for this SQL</div><br >\n<div>";
+			$error    = "<div>Not sure about the return type for this SQL. Pass an explicit return type to query(), e.g. <b>affected_rows</b>.</div><br >\n<div>";
 			$error   .= "<b>SQL:</b> $html_sql</div>";
-			$error   .= "<b>ReturnType:</b> $return_type</div>";
+			$error   .= "<b>ReturnType:</b> " . htmlentities((string)$return_type) . "</div>";
 
 			$this->error_out($error, 13843);
 		}
