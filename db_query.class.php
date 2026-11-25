@@ -209,7 +209,7 @@ class DBQuery {
 			$this->sth = $sth; // Cache the $sth
 			$this->query_sql = $sql;
 
-			$total = microtime(1) - $start;
+			$total = (microtime(1) - $start) * 1000;
 
 			$info = array(
 				'sql'              => $sql,
