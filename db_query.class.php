@@ -513,12 +513,12 @@ class DBQuery {
 
 		foreach ($msg as $m) {
 			if ($m) {
-				$msg = "<div><b>Error:</b> $m</div>\n";
+				$line = "<div><b>Error:</b> $m</div>\n";
 
 				// If we're in CLI mode, strip out any HTML tags
-				if ($cli) { $msg = strip_tags($msg); }
+				if ($cli) { $line = strip_tags($line); }
 
-				print $msg;
+				print $line;
 			}
 		}
 
