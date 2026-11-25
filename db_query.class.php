@@ -111,7 +111,7 @@ class DBQuery {
 				$sth = $dbh->prepare($sql);
 			} catch (Exception $e) {
 				if ($show_errors) {
-					$msg = "Exception: " . $e->getMessage() . "\n";
+					$msg = "Exception: " . htmlentities($e->getMessage(), ENT_QUOTES, 'UTF-8') . "\n";
 					$this->error_out($msg, 23489);
 				}
 
@@ -145,7 +145,7 @@ class DBQuery {
 					return false;
 				}
 
-				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", $err_text), 34102);
+				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", htmlentities((string)$err_text, ENT_QUOTES, 'UTF-8')), 34102);
 			}
 
 			// Execute the command with the appropriate replacement variables (if any)
@@ -153,7 +153,7 @@ class DBQuery {
 				$sth->execute($prepare_values);
 			} catch (Exception $e) {
 				if ($show_errors) {
-					$msg = "Exception: " . $e->getMessage() . "\n";
+					$msg = "Exception: " . htmlentities($e->getMessage(), ENT_QUOTES, 'UTF-8') . "\n";
 					$this->error_out($msg, 48203);
 				}
 
@@ -177,12 +177,12 @@ class DBQuery {
 		// Check for non "00000" error status
 		if ($show_errors && $has_error) {
 			$html_sql    = "<pre>" . $this->sql_clean($sql) . "</pre>";
-			$html_params = join(", ", $prepare_values);
+			$html_params = htmlentities(join(", ", array_map('strval', $prepare_values)), ENT_QUOTES, 'UTF-8');
 
 			if (empty($prepare_values)) {
-				$this->error_out("<span>Syntax Error</span>\n$html_sql\n$err_text", 34913);
+				$this->error_out("<span>Syntax Error</span>\n$html_sql\n" . htmlentities((string)$err_text, ENT_QUOTES, 'UTF-8'), 34913);
 			} else {
-				$this->error_out("<span>SQL Syntax Error</span>\n$html_sql\n<div>Params: $html_params</div>\n<br />\n$err_text", 34913);
+				$this->error_out("<span>SQL Syntax Error</span>\n$html_sql\n<div>Params: $html_params</div>\n<br />\n" . htmlentities((string)$err_text, ENT_QUOTES, 'UTF-8'), 34913);
 			}
 		}
 
@@ -258,7 +258,7 @@ class DBQuery {
 		} elseif ($return_type == 'info_list') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 38103);
+					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38103);
 					return false;
 				}
 
@@ -269,7 +269,7 @@ class DBQuery {
 		} elseif ($return_type == 'key_value') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 38104);
+					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38104);
 					return false;
 				}
 
@@ -287,7 +287,7 @@ class DBQuery {
 		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 38105);
+					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38105);
 					return false;
 				}
 
@@ -304,7 +304,7 @@ class DBQuery {
 		} elseif ($return_type == 'one_column') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 38106);
+					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38106);
 					return false;
 				}
 
@@ -336,7 +336,7 @@ class DBQuery {
 				$key = $data[$key_field];
 
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 13039);
+					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 13039);
 					return false;
 				}
 
@@ -367,7 +367,7 @@ class DBQuery {
 			// Loop through the data and return an info hash
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 12940);
+					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 12940);
 					return false;
 				}
 

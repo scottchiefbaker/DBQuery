@@ -595,6 +595,10 @@ $xss_html = $db_quiet->sql_clean("SELECT 1 WHERE v = '<script>x</script>'");
 unit_test(strpos($xss_html, "<script>") === false && strpos($xss_html, "&lt;script&gt;") !== false, "sql_clean: html-escapes SQL when htmlizing");
 unit_test(strpos($db_quiet->sql_clean("SELECT 1 WHERE v = '<b>'", 0), "<b>") !== false, "sql_clean: plain text mode is not escaped");
 
+// Bound parameter values are html-escaped before being shown in error output
+$param_html = htmlentities(join(", ", array_map('strval', array("<script>x</script>", null, 5))), ENT_QUOTES, 'UTF-8');
+unit_test(strpos($param_html, "<script>") === false && strpos($param_html, "&lt;script&gt;") !== false, "params: bound values are html-escaped");
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);
