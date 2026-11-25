@@ -312,13 +312,18 @@ class DBQuery {
 				$count++;
 			}
 		} elseif ($return_type == 'one_row_list') {
-			$ret         = $sth->fetch(PDO::FETCH_NUM);
+			$ret = $sth->fetch(PDO::FETCH_NUM);
+
+			// No matching row returns false from PDO; normalize to an empty array like one_row
+			if ($ret === false) {
+				$ret = array();
+			}
+
 			$return_recs = 1;
 		} elseif (($return_type == 'one_row' || preg_match("/^SELECT.*LIMIT 1;?$/si",$sql)) && $return_type != 'info_hash') {
 			$ret = $sth->fetch(PDO::FETCH_ASSOC);
 
-			// For some reason if you do a query with 'one_row' that returns no matches
-			// you get false from PDO::FETCH_ASSOC. This works around what may be a PDO bug
+			// PDO::fetch() returns false when no row matches; normalize to an empty array
 			if ($ret === false) {
 				$ret = array();
 			}
