@@ -559,7 +559,7 @@ class DBQuery {
 		exit;
 	}
 
-	public function number_ordinal($num) {
+	private function number_ordinal($num) {
 		$ones = $num % 10;
 		$tens = $num % 100;
 
