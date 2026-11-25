@@ -258,13 +258,13 @@ class DBQuery {
 			$return_recs = 1;
 		} elseif ($return_type == 'info_list') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
-				$ret[] = $data;
-
-				$count++;
-				if ($count > $rec_limit) {
+				if ($count >= $rec_limit) {
 					$this->error_out(array($max_allowed_error, $sql), 38103);
 					return false;
 				}
+
+				$ret[] = $data;
+				$count++;
 			}
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
@@ -313,6 +313,11 @@ class DBQuery {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				$key = $data[$key_field];
 
+				if ($count >= $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 13039);
+					return false;
+				}
+
 				if ($wants_array) {
 					$ret[$key][] = $data;
 				} else {
@@ -321,10 +326,6 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) {
-					$this->error_out(array($max_allowed_error, $sql), 13039);
-					return false;
-				}
 			}
 
 			// Record set exhausted during a fetch: clear the fetch state as the unkeyed branch does
@@ -343,14 +344,14 @@ class DBQuery {
 
 			// Loop through the data and return an info hash
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
-				$ret[] = $data;
-
-				$count++;
-				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) {
+				if ($count >= $rec_limit) {
 					$this->error_out(array($max_allowed_error, $sql), 12940);
 					return false;
 				}
+
+				$ret[] = $data;
+				$count++;
+				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
 			}
 
 			// If we have a cache sth and nothing to return it means
