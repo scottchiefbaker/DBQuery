@@ -73,7 +73,7 @@ foreach ($data as $i) {
 }
 ```
 
-**one_data** return a single scalar
+**one_data** return a single scalar. Returns `null` when no row matches.
 
 ```PHP
 $sql = "SELECT CustID FROM Customers WHERE Last = 'Doolis';";
