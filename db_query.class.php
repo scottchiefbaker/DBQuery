@@ -251,11 +251,10 @@ class DBQuery {
 			return false;
 		} elseif ($return_type === 'one_data' || $return_type === "one") {
 			$ret = $sth->fetch(PDO::FETCH_NUM); // Get the first row
-			$ret = $ret[0] ?? null; // Get the first column of the first row
-
-			// If nothing is in the record set, return an empty string
-			if (!isset($ret)) { $ret = ''; }
+			$ret = $ret[0] ?? null; // Get the first column of the first row, or null if no row
 			$return_recs = 1;
+
+			if ($ret === null) { $return_recs = 0; }
 		} elseif ($return_type == 'info_list') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
@@ -474,7 +473,7 @@ class DBQuery {
 			}
 		}
 
-		if (!isset($ret)) { $ret = array(); }
+		if (!isset($ret) && !in_array($return_type, array('one_data', 'one'), true)) { $ret = array(); }
 
 		return $ret;
 	}

@@ -278,7 +278,7 @@ print "\n";
 
 $sql = "SELECT First FROM Customer WHERE CustID = 99999;";
 $data = $dbq->query($sql,'one_data');
-unit_test($data === '', "SELECT: OneData with no matches returns empty string");
+unit_test($data === null, "SELECT: OneData with no matches returns null");
 
 ///////////////////////////////////////
 // Select - InfoHash with no results
@@ -358,7 +358,7 @@ unit_test(sizeof($data) === 1                 , "SELECT: Prepared statement with
 unit_test($data[0]['First'] === 'Jason'       , "SELECT: Prepared statement with info_hash correct data");
 
 $data = $dbq->query($sql,[99999],'one_data');
-unit_test($data === ''                        , "SELECT: Prepared statement with one_data no match returns empty string");
+unit_test($data === null                      , "SELECT: Prepared statement with one_data no match returns null");
 
 ///////////////////////////////////////
 // delay_connect
