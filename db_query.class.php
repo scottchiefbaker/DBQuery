@@ -357,12 +357,23 @@ class DBQuery {
 		// Info hash with a key field. Example: 'info_hash:CustID'
 		} elseif ($return_type == 'info_hash' && isset($key_field)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
-				$key = $data[$key_field];
-
 				if ($count >= $rec_limit) {
 					$this->error_out($limit_error, 13039);
 					return false;
 				}
+
+				if (!array_key_exists($key_field, $data)) {
+					if (!$show_errors) { return false; }
+
+					$key_error = "info_hash key field \"";
+					$key_error .= htmlentities($key_field, ENT_QUOTES, 'UTF-8');
+					$key_error .= "\" was not found in the result set.<br />";
+					$key_error .= htmlentities($sql, ENT_QUOTES, 'UTF-8');
+					$this->error_out($key_error, 38108);
+					return false;
+				}
+
+				$key = $data[$key_field];
 
 				if ($wants_array) {
 					$ret[$key][] = $data;

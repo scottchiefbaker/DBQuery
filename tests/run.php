@@ -714,6 +714,16 @@ $data = $rt->query("SELECT * FROM _kp ORDER BY v;", 'key_pair:k,v');
 unit_test(array_key_exists(0, $data) && $data[0] === 'zero', "key_pair: numeric string key '0' is retained");
 unit_test(array_key_exists('', $data) && $data[''] === 'empty', "key_pair: empty key is retained");
 
+expect_error_out($rt, function() use ($rt) {
+	$rt->query("SELECT * FROM _rt;", 'info_hash|MissingField');
+}, 38108, "info_hash: missing key field reports a clear shape error", function($msg) {
+	return is_string($msg) && strpos($msg, 'MissingField') !== false;
+});
+$rt->show_errors = false;
+$data = $rt->query("SELECT * FROM _rt;", 'info_hash|MissingField');
+unit_test($data === false, "info_hash: missing key field returns false silently when show_errors=false");
+$rt->show_errors = true;
+
 $rt->show_errors = false;
 $data = $rt->query("SELECT id FROM _rt ORDER BY id;", 'key_value');
 unit_test($data === false, "key_value: one-column result returns false silently when show_errors=false");
