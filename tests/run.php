@@ -421,7 +421,10 @@ unit_test($data === 1, "DROP: returns 1");
 print "\n";
 
 $data = $dbq->query("REPLACE INTO Customer (First, Last, City, State, Zipcode, CustID) VALUES ('ReplaceTest', 'User', 'Nowhere', 'XX', 12345, 1);");
-unit_test($data === 1, "REPLACE: returns affected rows");
+unit_test($data === 1, "REPLACE: auto-detected returns insert id");
+
+$data = $dbq->query("REPLACE INTO Customer (First, Last, City, State, Zipcode, CustID) VALUES ('ReplaceTest', 'User', 'Nowhere', 'XX', 12345, 1);", 'affected_rows');
+unit_test($data === 1, "REPLACE: explicit affected_rows returns affected rows");
 
 $data = $dbq->query("SELECT * FROM Customer WHERE CustID = 1;");
 unit_test($data[0]['First'] === 'ReplaceTest', "REPLACE: data was actually replaced");

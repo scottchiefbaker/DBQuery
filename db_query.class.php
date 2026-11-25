@@ -386,7 +386,7 @@ class DBQuery {
 
 			$return_type = 'info_hash';
 		// It's an INSERT so we try and return the record id
-		} elseif ($return_type == 'insert_id' || preg_match("/^INSERT/i",$sql)) {
+		} elseif ($return_type == 'insert_id' || preg_match("/^(INSERT|REPLACE)/i",$sql)) {
 			// Get the ID from the inserted record, and convert it to an integer
 			$insert_id = $ret = $dbh->lastInsertId();
 			if (is_numeric($ret)) {
@@ -398,7 +398,7 @@ class DBQuery {
 			$return_type = 'insert_id';
 			$return_recs = 1;
 		// Delete/Update returns the number of rows affected
-		} elseif ($return_type == 'affected_rows' || preg_match("/^(DELETE|UPDATE|REPLACE|TRUNCATE)/i",$sql)) {
+		} elseif ($return_type == 'affected_rows' || preg_match("/^(DELETE|UPDATE|TRUNCATE)/i",$sql)) {
 			$ret         = $affected_rows;
 			$return_type = 'affected_rows';
 			$return_recs = 1;
