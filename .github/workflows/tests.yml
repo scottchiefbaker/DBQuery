@@ -27,4 +27,4 @@ jobs:
           tools: none
 
       - name: Run unit tests
-        run: php tests/unit_test.php
+        run: php tests/run.php

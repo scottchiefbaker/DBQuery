@@ -125,5 +125,5 @@ to test the functionality of DBQuery. You can run this unit tets from the
 command line with:
 
 ```
-php tests/unit_test.php
+php tests/run.php
 ```
