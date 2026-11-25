@@ -243,7 +243,10 @@ class DBQuery {
 				$ret[] = $data;
 
 				$count++;
-				if ($count > $rec_limit) { $this->error_out(array($max_allowed_error, $sql), 38103); }
+				if ($count > $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 38103);
+					return false;
+				}
 			}
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
@@ -300,7 +303,10 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) { $this->error_out(array($max_allowed_error, $sql), 13039); }
+				if ($count > $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 13039);
+					return false;
+				}
 			}
 
 			$return_type = 'info_hash_with_key';
@@ -317,7 +323,10 @@ class DBQuery {
 
 				$count++;
 				if (isset($this->fetch_num) && ($count >= $this->fetch_num)) { break; }
-				if ($count > $rec_limit) { $this->error_out(array($max_allowed_error, $sql), 12940); }
+				if ($count > $rec_limit) {
+					$this->error_out(array($max_allowed_error, $sql), 12940);
+					return false;
+				}
 			}
 
 			// If we have a cache sth and nothing to return it means
@@ -427,6 +436,13 @@ class DBQuery {
 		return $ret;
 	}
 
+	/**
+	 * Report an error and terminate the script.
+	 *
+	 * When show_errors is false this returns false without printing or exiting.
+	 * Callers must return immediately after calling it in that case, because
+	 * execution would otherwise continue with an invalid state.
+	 */
 	public function error_out(string|array $msg, ?int $num = null) {
 		// Don't print any errors if we're not showing errors
 		if (!$this->show_errors) { return false; }
