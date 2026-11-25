@@ -927,16 +927,17 @@ function unit_test($code,$name = "") {
 
 	$ok = !!($code);
 
-	$color_ok    = "\033[38;5;2m";
-	$color_bad   = "\033[38;5;1m";
+	$color_pass  = "\033[38;5;2m";
+	$color_fail  = "\033[38;5;1m";
 	$color_reset = "\033[0m";
+	$white       = "\033[1;15m";
 
 	if ($name === -1) {
 		if ($bad) {
-			printf("%sFail%s: %d of %d tests passed (%0.2f%% failure rate)\n",$color_bad,$color_reset,$good,$count,($bad / $count) * 100);
+			printf("%sFail%s: %d of %d tests passed (%0.2f%% failure rate)\n", $color_fail, $color_reset, $good, $count, ($bad / $count) * 100);
 			$ret = $bad;
 		} else {
-			printf("%sPass%s: %d of %d tests passed (%0.2f%% failure rate)\n",$color_ok,$color_reset,$good,$count,($bad / $count) * 100);
+			printf("%sPass%s: %d of %d tests passed (%0.2f%% failure rate)\n", $color_pass, $color_reset, $good, $count, ($bad / $count) * 100);
 			$ret = 0;
 		}
 
@@ -944,10 +945,10 @@ function unit_test($code,$name = "") {
 	}
 
 	if ($ok) {
-		printf(" %sOK%s - %s\n",$color_ok,$color_reset,$name);
+		printf("%s[ %sPASS%s ]%s - %s\n", $white, $color_pass, $color_reset . $white, $color_reset, $name);
 		$good++;
 	} else {
-		printf("%sBad%s - %s\n",$color_bad,$color_reset,$name);
+		printf("%s[ %sFAIL%s ]%s - %s\n", $white, $color_fail, $color_reset . $white, $color_reset, $name);
 		$bad++;
 	}
 
