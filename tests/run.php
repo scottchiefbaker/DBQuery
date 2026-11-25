@@ -606,6 +606,268 @@ unit_test($cred_prop->getValue($db_cred) === "", "credentials: password not kept
 $db_cred_delay = new DBQuery("sqlite::memory:", "", "secret", ['delay_connect' => true]);
 unit_test($cred_prop->getValue($db_cred_delay) === "secret", "credentials: password kept for delayed connect");
 
+///////////////////////////////////////
+// Chunked fetch
+///////////////////////////////////////
+print "\n";
+
+function fetch_db() {
+	$d = new DBQuery("sqlite::memory:");
+	$d->show_errors = false;
+	$d->query("CREATE TABLE _fetch (id INTEGER PRIMARY KEY, g TEXT);");
+	$d->query("INSERT INTO _fetch (g) VALUES ('a'),('b'),('c'),('d'),('e');");
+	return $d;
+}
+
+$fd = fetch_db();
+$started = $fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+unit_test($started === true, "fetch: starting a fetch returns true");
+
+$chunk1 = $fd->query("", 'info_hash');
+$chunk2 = $fd->query("", 'info_hash');
+$chunk3 = $fd->query("", 'info_hash');
+unit_test(sizeof($chunk1) === 2 && $chunk1[0]['g'] === 'a', "fetch: first chunk honours fetch:2 limit");
+unit_test(sizeof($chunk2) === 2 && $chunk2[0]['g'] === 'c', "fetch: second chunk continues from where it left off");
+unit_test(sizeof($chunk3) === 1 && $chunk3[0]['g'] === 'e', "fetch: final partial chunk returns remaining rows");
+
+$drained = $fd->query("", 'info_hash');
+unit_test($drained === [], "fetch: pulling past the end returns an empty array");
+
+$after = $fd->query("SELECT COUNT(*) AS n FROM _fetch;", 'info_hash');
+unit_test($after[0]['n'] == 5, "fetch: state is cleared so a new query runs after draining");
+
+$fd = fetch_db();
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+$fd->query("", 'info_hash');
+$fd->query("", 'info_hash');
+$fd->query("", 'info_hash');
+$fd->query("", 'info_hash');
+$fd->query("", 'info_hash');
+$cur = $fd->query("SELECT COUNT(*) AS n FROM _fetch;", 'info_hash');
+unit_test($cur[0]['n'] == 5, "fetch: pulling past end repeatedly does not break later queries");
+
+$fd = fetch_db();
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+$blocked = $fd->query("SELECT 1;", 'info_hash');
+unit_test($blocked === false, "fetch: starting new SQL mid-fetch is rejected");
+$still = $fd->query("", 'info_hash');
+unit_test(sizeof($still) === 2 && $still[0]['g'] === 'a', "fetch: rejected SQL does not disturb the in-progress fetch");
+
+$fd = fetch_db();
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+$wrong = $fd->query("", 'info_list');
+unit_test($wrong === false, "fetch: non-info_hash pull mid-fetch is rejected");
+
+$fd = fetch_db();
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch');
+$all = $fd->query("", 'info_hash');
+unit_test(sizeof($all) === 5, "fetch: bare 'fetch' uses default chunk size of 500");
+
+$fd = fetch_db();
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+$k1 = $fd->query("", 'info_hash|g');
+unit_test(is_assoc($k1) && array_keys($k1) === ['a','b'], "fetch: keyed chunk is keyed by column value");
+$k2 = $fd->query("", 'info_hash|g');
+unit_test(array_keys($k2) === ['c','d'], "fetch: keyed second chunk continues");
+$k3 = $fd->query("", 'info_hash|g');
+unit_test(array_keys($k3) === ['e'], "fetch: keyed final partial chunk");
+$kend = $fd->query("", 'info_hash|g');
+unit_test($kend === [], "fetch: keyed pull past end returns empty array");
+
+$fd = fetch_db();
+$fd->query("INSERT INTO _fetch (g) VALUES ('a');");
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+$dup1 = $fd->query("", 'info_hash|g');
+unit_test(sizeof($dup1) === 2, "fetch: keyed chunk with duplicate keys returns distinct keys");
+$fd->query("", 'info_hash|g');
+$fd->query("", 'info_hash|g');
+$fd->query("", 'info_hash|g');
+$dupcheck = $fd->query("SELECT COUNT(*) AS n FROM _fetch;", 'info_hash');
+unit_test($dupcheck[0]['n'] == 6, "fetch: keyed fetch with duplicate keys still clears state after draining");
+
+$fd = fetch_db();
+$fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
+$arr_mode = $fd->query("", 'info_hash|g[]');
+unit_test(is_array($arr_mode['a']) && sizeof($arr_mode['a']) === 1, "fetch: keyed [] mode collects rows into arrays");
+
+///////////////////////////////////////
+// Return types: success paths and record_limit errors
+///////////////////////////////////////
+print "\n";
+
+$rt = new DBQuery("sqlite::memory:");
+$rt->query("CREATE TABLE _rt (id INTEGER, v TEXT);");
+$rt->query("INSERT INTO _rt VALUES (1,'x'),(2,'y'),(3,'z');");
+
+$data = $rt->query("SELECT * FROM _rt ORDER BY id;", 'info_list');
+unit_test(is_numeric_array($data) && sizeof($data) === 3 && $data[1][1] === 'y', "info_list: returns numeric rows of values");
+
+$data = $rt->query("SELECT id FROM _rt ORDER BY id;", 'one_column');
+unit_test($data === [1,2,3], "one_column: returns flat list of first column");
+
+$data = $rt->query("SELECT v, id FROM _rt ORDER BY id;", 'key_value');
+unit_test($data === ['x'=>1,'y'=>2,'z'=>3], "key_value: first column is key, second is value");
+
+$data = $rt->query("SELECT * FROM _rt WHERE id = 99;", 'one_row_list');
+unit_test($data === [], "one_row_list: no match returns empty array");
+
+$data = $rt->query("SELECT * FROM _rt WHERE id = 1;", 'one_row_list');
+unit_test($data === [1,'x'], "one_row_list: returns the matching row as a numeric array");
+
+$rl = new DBQuery("sqlite::memory:");
+$rl->query("CREATE TABLE _rl (id INTEGER, v TEXT);");
+$rl->query("INSERT INTO _rl VALUES (1,'x'),(2,'y'),(3,'z');");
+$rl->record_limit = 1;
+expect_error_out($rl, function() use ($rl) {
+	$rl->query("SELECT * FROM _rl;", 'key_value');
+}, 38104, "error_out: key_value exceeds record_limit");
+
+$rl = new DBQuery("sqlite::memory:");
+$rl->query("CREATE TABLE _rl (id INTEGER, v TEXT);");
+$rl->query("INSERT INTO _rl VALUES (1,'x'),(2,'y'),(3,'z');");
+$rl->record_limit = 1;
+expect_error_out($rl, function() use ($rl) {
+	$rl->query("SELECT * FROM _rl;", 'key_pair:id,v');
+}, 38105, "error_out: key_pair exceeds record_limit");
+
+$rl = new DBQuery("sqlite::memory:");
+$rl->query("CREATE TABLE _rl (id INTEGER, v TEXT);");
+$rl->query("INSERT INTO _rl VALUES (1,'x'),(2,'y'),(3,'z');");
+$rl->record_limit = 1;
+expect_error_out($rl, function() use ($rl) {
+	$rl->query("SELECT * FROM _rl;", 'one_column');
+}, 38106, "error_out: one_column exceeds record_limit");
+
+///////////////////////////////////////
+// Auto-detect SHOW / EXECUTE and LOCK / UNLOCK
+///////////////////////////////////////
+print "\n";
+
+$lk = new DBQuery("sqlite::memory:");
+$lk->show_errors = false;
+unit_test($lk->query("LOCK TABLES _x;") === false, "LOCK: unsupported by SQLite, returns false silently");
+unit_test($lk->query("UNLOCK TABLES;") === false, "UNLOCK: unsupported by SQLite, returns false silently");
+
+///////////////////////////////////////
+// show_errors=false on exception paths (no exit, returns false)
+///////////////////////////////////////
+print "\n";
+
+$se = new DBQuery("sqlite::memory:");
+$se->show_errors = false;
+unit_test($se->query("INVALID SQL;") === false, "show_errors=false: prepare exception returns false");
+
+$se->query("CREATE TABLE _se (id INTEGER NOT NULL);");
+unit_test($se->query("INSERT INTO _se VALUES (NULL);") === false, "show_errors=false: execute exception returns false");
+
+$se->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+unit_test($se->query("INVALID SQL;") === false, "show_errors=false: unable to create STH returns false");
+unit_test(!empty($se->last_info()) && $se->last_info()['error_code'] !== 0, "show_errors=false: failed prepare is recorded in query info");
+
+$se2 = new DBQuery("sqlite::memory:");
+$se2->show_errors = false;
+$se2->query("CREATE TABLE _se2 (id INTEGER NOT NULL);");
+$se2->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+unit_test($se2->query("INSERT INTO _se2 VALUES (NULL);") === false, "show_errors=false: syntax error from errorInfo returns false");
+
+///////////////////////////////////////
+// external_error_function hook fires on error when show_errors is true
+///////////////////////////////////////
+print "\n";
+
+$hook = new DBQuery("sqlite::memory:");
+$hook->query("CREATE TABLE _hook (id INTEGER, v TEXT);");
+$hook->query("INSERT INTO _hook VALUES (1,'a'),(2,'b');");
+$hook->record_limit = 1;
+$hook_calls = [];
+$hook->external_error_function = function($m,$n) use (&$hook_calls) {
+	$hook_calls[] = $n;
+	throw new ErrorOutException($m,$n);
+};
+try {
+	$hook->query("SELECT * FROM _hook;", 'info_hash');
+} catch (ErrorOutException $e) {}
+unit_test($hook_calls === [12940], "hook: external_error_function is invoked with the error number");
+
+///////////////////////////////////////
+// query_summary() rendering
+///////////////////////////////////////
+print "\n";
+
+$qs = new DBQuery("sqlite::memory:");
+$qs->query("CREATE TABLE _qs (id INTEGER, v TEXT);");
+$qs->query("INSERT INTO _qs VALUES (1,'a');");
+for ($i = 0; $i < 2; $i++) {
+	$qs->query("SELECT * FROM _qs WHERE id = ?;", [1], 'info_hash');
+}
+
+$summary = $qs->query_summary();
+unit_test(strpos($summary, '2nd call') !== false, "query_summary: repeated call from the same line shows ordinal");
+unit_test(strpos($summary, 'Values') !== false, "query_summary: bound parameter values are shown");
+unit_test(strpos($summary, 'Return: <b>info_hash</b>') !== false, "query_summary: shows return type");
+
+$qs->slow_query_time = -1;
+$slow = $qs->query_summary();
+unit_test(strpos($slow, 'Slow Query threshold') !== false, "query_summary: queries above threshold are flagged");
+
+$qs->slow_query_time = 1000000;
+$fast = $qs->query_summary();
+unit_test(strpos($fast, 'Slow Query threshold') === false, "query_summary: queries below threshold are not flagged");
+
+$qe = new DBQuery("sqlite::memory:");
+$qe->query("CREATE TABLE _qe (id INTEGER NOT NULL);");
+$qe->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$qe->query("INSERT INTO _qe VALUES (NULL);", 'no_error');
+unit_test(count($qe->db_query_info) === 1, "query_summary: failed query under no_error is not recorded in query info");
+
+$qn = new DBQuery("sqlite::memory:");
+$qn->query("CREATE TABLE _qn (v TEXT);");
+$qn->query("INSERT INTO _qn VALUES (NULL);");
+$qn->query("INSERT INTO _qn VALUES (?);", [''], 'affected_rows');
+$qn->query("SELECT * FROM _qn WHERE v = ?;", [null], 'info_hash');
+unit_test(strpos($qn->query_summary(), 'NULL_STRING') !== false, "query_summary: empty string param shows NULL_STRING");
+unit_test(strpos($qn->query_summary(), '<b style="color: #811D0D;">NULL</b>') !== false, "query_summary: null param shows NULL marker");
+
+///////////////////////////////////////
+// debug_log()
+///////////////////////////////////////
+print "\n";
+
+$dl = new DBQuery("sqlite::memory:");
+$dl->debug = 1;
+ob_start();
+$dl->debug_log("hello world");
+$out_on = ob_get_clean();
+unit_test($out_on === "<div>hello world</div>\n", "debug_log: prints when debug is enabled");
+
+$dl->debug = 0;
+ob_start();
+$dl->debug_log("silent");
+$out_off = ob_get_clean();
+unit_test($out_off === "", "debug_log: silent when debug is disabled");
+
+///////////////////////////////////////
+// query_log file output
+///////////////////////////////////////
+print "\n";
+
+$log_file = sys_get_temp_dir() . "/db_query_test_" . getmypid() . ".csv";
+@unlink($log_file);
+touch($log_file);
+
+$ql = new DBQuery("sqlite::memory:");
+$ql->query("CREATE TABLE _ql (id INTEGER);");
+$ql->query_log = $log_file;
+$ql->query("INSERT INTO _ql VALUES (1);", 'affected_rows');
+$log_contents = file_get_contents($log_file);
+unit_test(strpos($log_contents, "INSERT INTO _ql VALUES (1);") !== false, "query_log: writes executed SQL to the log file");
+unit_test(preg_match('/^"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}","INSERT INTO _ql VALUES \(1\);","[\d.]+","1"$/m', $log_contents) === 1, "query_log: each line is date,sql,time,records");
+
+$ql->query_log = "/nonexistent_dir_for_test/x.csv";
+$unwritable = $ql->query("INSERT INTO _ql VALUES (2);");
+unit_test($unwritable === 2, "query_log: unwritable path does not break the query");
+unlink($log_file);
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);
