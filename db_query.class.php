@@ -82,9 +82,11 @@ class DBQuery {
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
 
-		$has_error = false;
-		$err_text  = '';
-		$err_code  = 0;
+		$has_error     = false;
+		$err_text      = '';
+		$err_code      = 0;
+		$err           = array();
+		$affected_rows = 0;
 
 		// If there is a SQL command, run it
 		if ($sql) {
