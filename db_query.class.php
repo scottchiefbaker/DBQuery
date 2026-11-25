@@ -488,17 +488,15 @@ class DBQuery {
 		return $ret;
 	}
 
-	/**
-	 * Report an error and terminate the script.
-	 *
-	 * When show_errors is true this always calls exit(); it cannot be recovered
-	 * from in the calling code. Use show_errors = false or the no_error hint to
-	 * get a return value instead.
-	 *
-	 * When show_errors is false this returns false without printing or exiting.
-	 * Callers must return immediately after calling it in that case, because
-	 * execution would otherwise continue with an invalid state.
-	 */
+	//Report an error and terminate the script.
+	//
+	//When show_errors is true this always calls exit(); it cannot be recovered
+	//from in the calling code. Use show_errors = false or the no_error hint to
+	//get a return value instead.
+	//
+	//When show_errors is false this returns false without printing or exiting.
+	//Callers must return immediately after calling it in that case, because
+	//execution would otherwise continue with an invalid state.
 	public function error_out(string|array $msg, ?int $num = null) {
 		// Don't print any errors if we're not showing errors
 		if (!$this->show_errors) { return false; }
