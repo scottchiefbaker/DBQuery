@@ -82,6 +82,13 @@ class DBQuery {
 
 		if (!$sql && !$this->sth) { return array(); } // Nothing to do and no cached STH
 
+		// A chunked fetch is in progress; running new SQL would drop its remaining records
+		if ($sql && $this->sth) {
+			if (!$show_errors) { return false; }
+
+			$this->error_out('A fetch is in progress. Drain it with query("") before running another query.', 27414);
+		}
+
 		$has_error     = false;
 		$err_text      = '';
 		$err_code      = 0;
