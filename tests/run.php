@@ -590,6 +590,11 @@ $quiet_out  = ob_get_clean();
 unit_test($quiet_out === "", "normal path: no stdout output for scalar return types");
 unit_test($quiet_id === 1 && $quiet_one === 'a' && $quiet_aff === 1, "normal path: scalar return values still correct");
 
+// sql_clean escapes SQL before highlighting so user input cannot inject markup
+$xss_html = $db_quiet->sql_clean("SELECT 1 WHERE v = '<script>x</script>'");
+unit_test(strpos($xss_html, "<script>") === false && strpos($xss_html, "&lt;script&gt;") !== false, "sql_clean: html-escapes SQL when htmlizing");
+unit_test(strpos($db_quiet->sql_clean("SELECT 1 WHERE v = '<b>'", 0), "<b>") !== false, "sql_clean: plain text mode is not escaped");
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);

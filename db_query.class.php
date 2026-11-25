@@ -632,6 +632,11 @@ class DBQuery {
 
 		$words = array("FROM","WHERE","INNER JOIN","LEFT JOIN","GROUP BY","LIMIT","VALUES","SET","ORDER BY","OFFSET","LEFT OUTER JOIN");
 
+		// Escape user-supplied SQL before any markup is added, so it cannot inject HTML
+		if ($htmlize) {
+			$ret = htmlentities($ret, ENT_QUOTES, 'UTF-8');
+		}
+
 		foreach ($words as $word) {
 			$ret = preg_replace("/\b$word\b/i","\n$word",$ret); // Add a \n before each of the "words"
 		}
