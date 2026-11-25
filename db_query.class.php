@@ -136,13 +136,9 @@ class DBQuery {
 						'parameter_values' => $prepare_values
 					);
 
-					$i = debug_backtrace();
-
-					if (isset($i[1])) { $num = 1; } // Called from my external class
-					else { $num = 0; } // Called direct
-
-					$info['called_from_file'] = $i[$num]['file'];
-					$info['called_from_line'] = $i[$num]['line'];
+					$call_location = $this->get_call_location();
+					$info['called_from_file'] = $call_location['file'];
+					$info['called_from_line'] = $call_location['line'];
 
 					$this->db_query_info[] = $info;
 
@@ -226,12 +222,9 @@ class DBQuery {
 				'parameter_values' => $prepare_values
 			);
 
-			$i = debug_backtrace();
-			if (isset($i[1])) { $num = 1; } // Called from my external class
-			else { $num = 0; } // Called direct
-
-			$info['called_from_file'] = $i[$num]['file'];
-			$info['called_from_line'] = $i[$num]['line'];
+			$call_location = $this->get_call_location();
+			$info['called_from_file'] = $call_location['file'];
+			$info['called_from_line'] = $call_location['line'];
 			$this->db_query_info[]    = $info;
 
 			return true;
@@ -489,12 +482,9 @@ class DBQuery {
 			'parameter_values' => $prepare_values
 		);
 
-		$i = debug_backtrace();
-		if (isset($i[1])) { $num = 1; } // Called from my external class
-		else { $num = 0; } // Called direct
-
-		$info['called_from_file'] = $i[$num]['file'];
-		$info['called_from_line'] = $i[$num]['line'];
+		$call_location = $this->get_call_location();
+		$info['called_from_file'] = $call_location['file'];
+		$info['called_from_line'] = $call_location['line'];
 		$this->db_query_info[]    = $info;
 
 		// Log to a file if need be
@@ -715,6 +705,38 @@ class DBQuery {
 
 	public function rollback(): bool {
 		return $this->dbh->rollback();
+	}
+
+	private function get_call_location(): array {
+		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+		$class_file = realpath(__FILE__);
+
+		foreach ($trace as $frame) {
+			if (!isset($frame['file'], $frame['line'])) {
+				continue;
+			}
+
+			$frame_file = $frame['file'];
+			$frame_real = realpath($frame_file);
+
+			if ($frame_real !== false && $class_file !== false && $frame_real === $class_file) {
+				continue;
+			}
+
+			if ($frame_file === __FILE__) {
+				continue;
+			}
+
+			return array(
+				'file' => $frame_file,
+				'line' => intval($frame['line'])
+			);
+		}
+
+		return array(
+			'file' => '',
+			'line' => 0
+		);
 	}
 
 	public function last_info(): array {

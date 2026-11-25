@@ -465,6 +465,17 @@ $dbq3 = new DBQuery("sqlite::memory:");
 $info = $dbq3->last_info();
 unit_test($info === [], "last_info: returns empty array with no queries run");
 
+$call_db = new DBQuery("sqlite::memory:");
+$call_db->show_errors = false;
+$call_db->query("SELECT 1 AS n;", 'info_hash');
+$call_info = $call_db->last_info();
+unit_test(isset($call_info['called_from_file']) && is_string($call_info['called_from_file']), "call location: file is present and a string");
+unit_test(isset($call_info['called_from_line']) && is_int($call_info['called_from_line']) && $call_info['called_from_line'] > 0, "call location: line is present and positive");
+
+$location_method = new ReflectionMethod(DBQuery::class, 'get_call_location');
+$fallback_location = $location_method->invoke($call_db);
+unit_test(isset($fallback_location['file'], $fallback_location['line']) && is_string($fallback_location['file']) && is_int($fallback_location['line']), "call location: helper always returns guarded file and line keys");
+
 ///////////////////////////////////////
 // number_ordinal
 ///////////////////////////////////////
