@@ -429,12 +429,11 @@ class DBQuery {
 			if (!isset($ret)) {
 				$return_recs = 0;
 			} else {
-				if (!is_array($ret)) {
-					print "$sql\n";
-					print_r($ret);
-					print "\n";
+				if (is_array($ret)) {
+					$return_recs = sizeof($ret);
+				} else {
+					$return_recs = 1;
 				}
-				$return_recs = sizeof($ret);
 			}
 			if (isset($insert_id)) { $return_recs .= " (#$insert_id)"; }
 		}

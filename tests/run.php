@@ -579,6 +579,17 @@ $db_err->external_error_function = function($m,$n) use (&$hook_fired) {
 $ret = $db_err->error_out("x");
 unit_test($ret === false && $hook_fired === false, "error_out: show_errors=false returns false and skips hook");
 
+// Normal path must not write to stdout for non-array return values
+$db_quiet = new DBQuery("sqlite::memory:");
+$db_quiet->query("CREATE TABLE _quiet (id INTEGER PRIMARY KEY, v TEXT);");
+ob_start();
+$quiet_id   = $db_quiet->query("INSERT INTO _quiet (v) VALUES ('a');", "insert_id");
+$quiet_one  = $db_quiet->query("SELECT v FROM _quiet WHERE id = 1;", "one_data");
+$quiet_aff  = $db_quiet->query("UPDATE _quiet SET v = 'b';", "affected_rows");
+$quiet_out  = ob_get_clean();
+unit_test($quiet_out === "", "normal path: no stdout output for scalar return types");
+unit_test($quiet_id === 1 && $quiet_one === 'a' && $quiet_aff === 1, "normal path: scalar return values still correct");
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);
