@@ -192,7 +192,7 @@ class DBQuery {
 			}
 		}
 
-		if (preg_match("/info_hash[:|](\w+)(\[\])?/",$return_type,$m)) {
+		if (preg_match("/^info_hash[:|](\w+)(\[\])?$/",$return_type,$m)) {
 			$key_field   = $m[1];
 			$return_type = "info_hash";
 

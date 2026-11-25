@@ -708,6 +708,10 @@ unit_test($data === [1,2,3], "one_column: returns flat list of first column");
 $data = $rt->query("SELECT v, id FROM _rt ORDER BY id;", 'key_value');
 unit_test($data === ['x'=>1,'y'=>2,'z'=>3], "key_value: first column is key, second is value");
 
+$rt->show_errors = false;
+unit_test($rt->query("SELECT * FROM _rt;", 'xinfo_hash:MissingField') === false, "info_hash: unanchored hint prefix is rejected");
+$rt->show_errors = true;
+
 $rt->query("CREATE TABLE _kp (k TEXT, v TEXT);");
 $rt->query("INSERT INTO _kp VALUES ('0','zero'), ('','empty'), ('x','letter');");
 $data = $rt->query("SELECT * FROM _kp ORDER BY v;", 'key_pair:k,v');
