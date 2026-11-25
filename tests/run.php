@@ -708,6 +708,12 @@ unit_test($data === [1,2,3], "one_column: returns flat list of first column");
 $data = $rt->query("SELECT v, id FROM _rt ORDER BY id;", 'key_value');
 unit_test($data === ['x'=>1,'y'=>2,'z'=>3], "key_value: first column is key, second is value");
 
+$rt->query("CREATE TABLE _kp (k TEXT, v TEXT);");
+$rt->query("INSERT INTO _kp VALUES ('0','zero'), ('','empty'), ('x','letter');");
+$data = $rt->query("SELECT * FROM _kp ORDER BY v;", 'key_pair:k,v');
+unit_test(array_key_exists(0, $data) && $data[0] === 'zero', "key_pair: numeric string key '0' is retained");
+unit_test(array_key_exists('', $data) && $data[''] === 'empty', "key_pair: empty key is retained");
+
 $rt->show_errors = false;
 $data = $rt->query("SELECT id FROM _rt ORDER BY id;", 'key_value');
 unit_test($data === false, "key_value: one-column result returns false silently when show_errors=false");

@@ -320,9 +320,7 @@ class DBQuery {
 				$key   = $data[$m[1]];
 				$value = $data[$m[2]];
 
-				if ($key) {
-					$ret[$key] = $value;
-				}
+				$ret[$key] = $value;
 				$count++;
 			}
 
