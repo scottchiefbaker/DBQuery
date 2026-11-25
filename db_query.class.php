@@ -149,6 +149,7 @@ class DBQuery {
 
 			if ($err[0] !== "00000") {
 				$has_error = true;
+				$err_text  = $err[2];
 			}
 
 			$this->sth = null; // Remove any cached statement handles (from fetches)
@@ -161,7 +162,6 @@ class DBQuery {
 		if ($show_errors && $has_error) {
 			$html_sql    = "<pre>" . $this->sql_clean($sql) . "</pre>";
 			$html_params = join(", ", $prepare_values);
-			$err_text    = $err[2];
 
 			if (empty($prepare_values)) {
 				$this->error_out("<span>Syntax Error</span>\n$html_sql\n$err_text", 34913);
