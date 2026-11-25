@@ -237,7 +237,14 @@ class DBQuery {
 			$is_fetch = 1;
 		}
 
-		$rec_limit         = $this->record_limit;
+		$rec_limit = $this->record_limit;
+
+		// A non-positive limit is treated as unlimited. This keeps accidental
+		// zero or negative runtime assignments from failing every row loop.
+		if ($rec_limit <= 0) {
+			$rec_limit = PHP_INT_MAX;
+		}
+
 		$max_allowed_error = "Query exceeded max allowed records: $rec_limit";
 		$limit_error       = $max_allowed_error . "<br />" . htmlentities($sql, ENT_QUOTES, 'UTF-8');
 

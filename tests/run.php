@@ -779,6 +779,15 @@ expect_error_out($rl, function() use ($rl) {
 	$rl->query("SELECT * FROM _rl;", 'one_column');
 }, 38106, "error_out: one_column exceeds record_limit");
 
+$rl->show_errors = false;
+$rl->record_limit = 0;
+$zero_limit = $rl->query("SELECT * FROM _rl ORDER BY id;", 'info_hash');
+unit_test(sizeof($zero_limit) === 3, "record_limit: zero is treated as unlimited");
+
+$rl->record_limit = -1;
+$negative_limit = $rl->query("SELECT * FROM _rl ORDER BY id;", 'info_hash');
+unit_test(sizeof($negative_limit) === 3, "record_limit: negative values are treated as unlimited");
+
 ///////////////////////////////////////
 // Auto-detect SHOW / EXECUTE and LOCK / UNLOCK
 ///////////////////////////////////////
