@@ -29,10 +29,14 @@ class DBQuery {
 		// Delay connection until the first query
 		$delay_connect = $opts['delay_connect'] ?? false;
 
-		$this->dsn           = $dsn;
-		$this->user          = $user;
-		$this->pass          = $pass;
 		$this->delay_connect = $delay_connect;
+
+		// Only keep the credentials if we need them to connect later
+		if ($delay_connect) {
+			$this->dsn  = $dsn;
+			$this->user = $user;
+			$this->pass = $pass;
+		}
 
 		// If we're not delaying connect right now
 		if (!$delay_connect) {

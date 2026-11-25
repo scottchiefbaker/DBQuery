@@ -599,6 +599,13 @@ unit_test(strpos($db_quiet->sql_clean("SELECT 1 WHERE v = '<b>'", 0), "<b>") !==
 $param_html = htmlentities(join(", ", array_map('strval', array("<script>x</script>", null, 5))), ENT_QUOTES, 'UTF-8');
 unit_test(strpos($param_html, "<script>") === false && strpos($param_html, "&lt;script&gt;") !== false, "params: bound values are html-escaped");
 
+// Password is only retained when delay_connect needs it later
+$db_cred = new DBQuery("sqlite::memory:", "", "secret");
+$cred_prop = new ReflectionProperty(DBQuery::class, 'pass');
+unit_test($cred_prop->getValue($db_cred) === "", "credentials: password not kept for eager connect");
+$db_cred_delay = new DBQuery("sqlite::memory:", "", "secret", ['delay_connect' => true]);
+unit_test($cred_prop->getValue($db_cred_delay) === "secret", "credentials: password kept for delayed connect");
+
 print "\n";
 $exit_code = unit_test(-1,-1);
 exit($exit_code);
