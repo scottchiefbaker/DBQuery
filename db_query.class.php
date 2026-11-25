@@ -149,7 +149,9 @@ class DBQuery {
 					return false;
 				}
 
-				$this->error_out(array("Unable to create a <b>\$DBH</b> handle", htmlentities((string)$err_text, ENT_QUOTES, 'UTF-8')), 34102);
+				$sth_error = "Unable to create a <b>\$DBH</b> handle<br />";
+				$sth_error .= htmlentities((string)$err_text, ENT_QUOTES, 'UTF-8');
+				$this->error_out($sth_error, 34102);
 			}
 
 			// Execute the command with the appropriate replacement variables (if any)
@@ -244,6 +246,7 @@ class DBQuery {
 
 		$rec_limit         = $this->record_limit;
 		$max_allowed_error = "Query exceeded max allowed records: $rec_limit";
+		$limit_error       = $max_allowed_error . "<br />" . htmlentities($sql, ENT_QUOTES, 'UTF-8');
 
 		///////////////////////////////////////////////
 		// Be smart about what we're going to return //
@@ -262,7 +265,7 @@ class DBQuery {
 		} elseif ($return_type == 'info_list') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38103);
+					$this->error_out($limit_error, 38103);
 					return false;
 				}
 
@@ -271,9 +274,28 @@ class DBQuery {
 			}
 		// Key/Value where the first field is the key, and the second field is the value
 		} elseif ($return_type == 'key_value') {
+			// Validate the result shape before reading $data[0] and $data[1].
+			// columnCount() catches single-column and empty-result queries; the
+			// per-row check also guards custom PDO drivers that report a bad shape.
+			$shape_error = "key_value requires at least two columns: a key and a value.";
+
+			if ($sth->columnCount() < 2) {
+				if (!$show_errors) { return false; }
+
+				$this->error_out($shape_error, 38107);
+				return false;
+			}
+
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38104);
+					$this->error_out($limit_error, 38104);
+					return false;
+				}
+
+				if (!array_key_exists(0, $data) || !array_key_exists(1, $data)) {
+					if (!$show_errors) { return false; }
+
+					$this->error_out($shape_error, 38107);
 					return false;
 				}
 
@@ -291,7 +313,7 @@ class DBQuery {
 		} elseif (preg_match("/key_pair:(.+?),(.+)/",$return_type,$m)) {
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38105);
+					$this->error_out($limit_error, 38105);
 					return false;
 				}
 
@@ -308,7 +330,7 @@ class DBQuery {
 		} elseif ($return_type == 'one_column') {
 			while ($data = $sth->fetch(PDO::FETCH_NUM)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 38106);
+					$this->error_out($limit_error, 38106);
 					return false;
 				}
 
@@ -340,7 +362,7 @@ class DBQuery {
 				$key = $data[$key_field];
 
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 13039);
+					$this->error_out($limit_error, 13039);
 					return false;
 				}
 
@@ -371,7 +393,7 @@ class DBQuery {
 			// Loop through the data and return an info hash
 			while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
 				if ($count >= $rec_limit) {
-					$this->error_out(array($max_allowed_error, htmlentities($sql, ENT_QUOTES, 'UTF-8')), 12940);
+					$this->error_out($limit_error, 12940);
 					return false;
 				}
 

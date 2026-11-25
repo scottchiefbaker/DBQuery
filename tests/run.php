@@ -551,7 +551,7 @@ $db_err->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
 expect_error_out($db_err, function() use ($db_err) {
 	$db_err->query("INVALID SQL;");
 }, 34102, "error_out: unable to create STH", function($msg) {
-	return is_array($msg) && strpos($msg[0], 'Unable to create') !== false;
+	return is_string($msg) && strpos($msg, 'Unable to create') !== false;
 });
 
 // Syntax error detected via errorInfo (silent mode)
@@ -707,6 +707,16 @@ unit_test($data === [1,2,3], "one_column: returns flat list of first column");
 
 $data = $rt->query("SELECT v, id FROM _rt ORDER BY id;", 'key_value');
 unit_test($data === ['x'=>1,'y'=>2,'z'=>3], "key_value: first column is key, second is value");
+
+$rt->show_errors = false;
+$data = $rt->query("SELECT id FROM _rt ORDER BY id;", 'key_value');
+unit_test($data === false, "key_value: one-column result returns false silently when show_errors=false");
+$rt->show_errors = true;
+expect_error_out($rt, function() use ($rt) {
+	$rt->query("SELECT id FROM _rt ORDER BY id;", 'key_value');
+}, 38107, "key_value: one-column result reports a clear shape error", function($msg) {
+	return is_string($msg) && strpos($msg, 'at least two columns') !== false;
+});
 
 $data = $rt->query("SELECT * FROM _rt WHERE id = 99;", 'one_row_list');
 unit_test($data === [], "one_row_list: no match returns empty array");
