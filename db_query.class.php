@@ -320,6 +320,12 @@ class DBQuery {
 				}
 			}
 
+			// Record set exhausted during a fetch: clear the fetch state as the unkeyed branch does
+			if (isset($this->sth) && !isset($ret)) {
+				$this->query_sql = $this->sth = $this->fetch_num = NULL;
+				return array();
+			}
+
 			$return_type = 'info_hash_with_key';
 		// If it's an info_hash or nothing (auto detect) and it's known SQL run this
 		} elseif ($is_fetch || (($return_type == 'info_hash' || $return_type == "") && preg_match("/^(SELECT|SHOW|EXECUTE)/i",$sql))) {
