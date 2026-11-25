@@ -487,6 +487,10 @@ class DBQuery {
 	/**
 	 * Report an error and terminate the script.
 	 *
+	 * When show_errors is true this always calls exit(); it cannot be recovered
+	 * from in the calling code. Use show_errors = false or the no_error hint to
+	 * get a return value instead.
+	 *
 	 * When show_errors is false this returns false without printing or exiting.
 	 * Callers must return immediately after calling it in that case, because
 	 * execution would otherwise continue with an invalid state.
@@ -509,7 +513,7 @@ class DBQuery {
 		}
 
 		$cli = $this->is_cli();
-		print "<h2>Error #$num</h3>";
+		print "<h2>Error #$num</h2>";
 
 		foreach ($msg as $m) {
 			if ($m) {
