@@ -404,6 +404,23 @@ $dbq->commit();
 $data = $dbq->query("SELECT * FROM orders WHERE CustID = 2;");
 unit_test(sizeof($data) === 1, "Transaction: commit persists insert");
 
+$dbq->begin();
+$dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (1234,1,1);");
+expect_error_out($dbq, function() use ($dbq) {
+	$dbq->error_out("Transaction rollback test", 34134);
+}, 34134, "Transaction: error_out rolls back active transaction");
+unit_test(!$dbq->dbh->inTransaction(), "Transaction: error_out leaves no active transaction");
+$data = $dbq->query("SELECT * FROM orders WHERE CustID = 1234;");
+unit_test(empty($data), "Transaction: error_out rollback removes inserted row");
+
+$dbq->begin();
+$dbq->query("INSERT INTO orders (CustID,ItemID,ItemCount) VALUES (5678,1,1);");
+$ret = $dbq->error_out("Silent transaction rollback test", 34135);
+unit_test($ret === false, "Transaction: silent error_out returns false");
+unit_test(!$dbq->dbh->inTransaction(), "Transaction: silent error_out leaves no active transaction");
+$data = $dbq->query("SELECT * FROM orders WHERE CustID = 5678;");
+unit_test(empty($data), "Transaction: silent error_out rollback removes inserted row");
+
 ///////////////////////////////////////
 // CREATE / DROP
 ///////////////////////////////////////

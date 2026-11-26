@@ -531,6 +531,18 @@ class DBQuery {
 	//Callers must return immediately after calling it in that case, because
 	//execution would otherwise continue with an invalid state.
 	public function error_out(string|array $msg, ?int $num = null) {
+		// Fatal errors must not leave an active transaction behind. Roll back
+		// before calling an external error hook or printing/exiting.
+		if ($this->dbh !== null) {
+			try {
+				if ($this->dbh->inTransaction()) {
+					$this->dbh->rollBack();
+				}
+			} catch (Throwable $e) {
+				// Preserve the original error if rollback itself fails.
+			}
+		}
+
 		// Don't print any errors if we're not showing errors
 		if (!$this->show_errors) { return false; }
 
