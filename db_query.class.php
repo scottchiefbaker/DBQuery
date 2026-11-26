@@ -14,7 +14,6 @@ class DBQuery {
 	public int $slow_query_time     = 100; // Highlight queries that take longer than this (in ms)
 	public $external_error_function = "";  // Override the built in error function (callable)
 	public string $db_name          = "";
-	public array $dbh_cache         = [];
 	public ?PDO $dbh                = null;
 	public string $query_log        = "";
 	public int $record_limit        = 10000; // Don't return more than X records to prevent memory exhaustion
