@@ -695,6 +695,16 @@ $all = $fd->query("", 'info_hash');
 unit_test(sizeof($all) === 5, "fetch: bare 'fetch' uses default chunk size of 500");
 
 $fd = fetch_db();
+$unrelated = $fd->query("SELECT * FROM _fetch ORDER BY id;", 'prefetch');
+unit_test($unrelated === false, "fetch: hints containing fetch are not treated as fetch hints");
+$after_unrelated = $fd->query("SELECT COUNT(*) AS n FROM _fetch;", 'info_hash');
+unit_test($after_unrelated[0]['n'] == 5, "fetch: unrelated fetch text does not leave a cached statement");
+
+$fd = fetch_db();
+$invalid_chunk = $fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:0');
+unit_test($invalid_chunk === false, "fetch: fetch:0 is not a valid chunk hint");
+
+$fd = fetch_db();
 $fd->query("SELECT * FROM _fetch ORDER BY id;", 'fetch:2');
 $k1 = $fd->query("", 'info_hash|g');
 unit_test(is_assoc($k1) && array_keys($k1) === ['a','b'], "fetch: keyed chunk is keyed by column value");

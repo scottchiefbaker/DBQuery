@@ -97,7 +97,10 @@ class DBQuery {
 		}
 
 		// Pulls during a fetch must be info_hash so they honour the chunk limit and clear state
-		if (!$sql && $this->sth && !preg_match("/^(info_hash|fetch)/", $return_type)) {
+		$is_info_hash_pull = preg_match("/^info_hash([:|].*)?$/", $return_type);
+		$fetch_num_hint    = $this->parse_fetch_hint($return_type);
+
+		if (!$sql && $this->sth && !$is_info_hash_pull) {
 			if (!$show_errors) { return false; }
 
 			$this->error_out('A fetch is in progress. Pull it with query("", "info_hash") or query("") until it is drained.', 27415);
@@ -202,12 +205,8 @@ class DBQuery {
 		}
 
 		// If it's a looping fetch, just get the query started
-		if (preg_match("/fetch:?(.+)?/",$return_type,$m)) {
-			if (isset($m[1])) {
-				$this->fetch_num = intval($m[1]);
-			} else {
-				$this->fetch_num = 500;
-			}
+		if ($fetch_num_hint !== null) {
+			$this->fetch_num = $fetch_num_hint;
 
 			$this->sth = $sth; // Cache the $sth
 			$this->query_sql = $sql;
@@ -574,6 +573,23 @@ class DBQuery {
 		}
 
 		exit;
+	}
+
+	private function parse_fetch_hint(string $return_type): ?int {
+		if ($return_type === 'fetch') {
+			return 500;
+		}
+
+		if (!str_starts_with($return_type, 'fetch:')) {
+			return null;
+		}
+
+		$size = substr($return_type, 6);
+		if ($size === '' || $size[0] === '0' || strspn($size, '0123456789') !== strlen($size)) {
+			return null;
+		}
+
+		return intval($size);
 	}
 
 	private function number_ordinal($num) {
