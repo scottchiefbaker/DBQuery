@@ -1,8 +1,12 @@
 <?php
 
-define("DB_QUERY_VERSION","1.1.3");
+if (!defined("DB_QUERY_VERSION")) {
+	define("DB_QUERY_VERSION","1.1.3");
+}
 
 //////////////////////////////////////////////////////////////////////////////
+
+if (!class_exists('DBQuery', false)) {
 
 class DBQuery {
 	public int $debug               = 0;
@@ -770,4 +774,6 @@ class DBQuery {
 
 		return false;
 	}
+}
+
 }
